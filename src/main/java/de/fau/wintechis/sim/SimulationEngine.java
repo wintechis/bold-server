@@ -1,11 +1,13 @@
 package de.fau.wintechis.sim;
 
+import de.fau.wintechis.gsp.GraphStoreHandler;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
+import org.eclipse.jetty.server.Server;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -28,6 +30,8 @@ public class SimulationEngine {
 
     private final RDFConnection connection;
 
+    private final Server server;
+
     public SimulationEngine() {
         this.timer = new Timer();
 
@@ -45,6 +49,9 @@ public class SimulationEngine {
 
         Dataset dataset = DatasetFactory.create(m);
         connection = RDFConnectionFactory.connect(dataset);
+
+        server = new Server(8080); // TODO as env or class constructor argument
+        server.setHandler(new GraphStoreHandler(dataset));
 
         Vocabulary.registerFunctions();
     }
@@ -66,8 +73,14 @@ public class SimulationEngine {
             try {
                 writers.put(q, new FileWriter(q.hashCode() + ".dat"));
             } catch (IOException e) {
-                e.printStackTrace();
+                e.printStackTrace(); // TODO clean error handling
             }
+        }
+
+        try {
+            server.start();
+        } catch (Exception e) {
+            e.printStackTrace(); // TODO clean error handling
         }
 
         TimerTask task = new IterationTask(iterations);
@@ -100,7 +113,7 @@ public class SimulationEngine {
                     try {
                         writers.get(q).append(row);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        e.printStackTrace(); // TODO clean error handling
                     }
                 });
             }
@@ -110,11 +123,16 @@ public class SimulationEngine {
                     try {
                         w.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        e.printStackTrace(); // TODO clean error handling
                     }
                 }
 
                 timer.cancel();
+                try {
+                    server.stop();
+                } catch (Exception e) {
+                    e.printStackTrace(); // TODO clean error handling
+                }
             } else {
                 for (String u : updates) {
                     connection.update(u);

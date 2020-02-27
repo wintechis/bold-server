@@ -14,7 +14,9 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
+
     compile group: 'org.apache.jena', name: 'apache-jena-libs', version: '3.14.0'
+    compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.12.RC2'
 }
 
 mainClassName = 'de.fau.wintechis.Demo'

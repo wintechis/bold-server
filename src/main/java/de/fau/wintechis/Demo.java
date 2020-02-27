@@ -10,9 +10,11 @@ public class Demo {
 
     public static void main(String[] args) {
         SimulationEngine engine = new SimulationEngine();
+
         engine.registerUpdate(getResource("/occupancy.rq"));
         engine.registerQuery(getResource("/report.rq"));
         engine.loadData("init.ttl");
+
         engine.run(100, 720);
     }
 
