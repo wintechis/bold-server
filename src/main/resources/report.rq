@@ -1,0 +1,12 @@
+PREFIX : <http://example.org/demo#>
+PREFIX sim: <http://ti.rw.fau.de/sim#>
+SELECT ?time ?count WHERE {
+    sim:sim sim:currentTime ?time .
+    {
+        # counts the number of occupants in the building
+        SELECT (count(*) as ?count) WHERE {
+            ?sensor :state ?state .
+            FILTER (?state)
+        }
+    }
+}
