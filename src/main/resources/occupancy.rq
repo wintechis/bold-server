@@ -1,10 +1,14 @@
 PREFIX : <http://example.org/demo#>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
 DELETE {
-    ?sensor :state ?state .
+    graph ?sensor {
+        ?sensor :state ?state .
+    }
 } INSERT {
-    ?sensor :state ?state_p .
-    ?sensor :lunchEvent ?currentTime .
+    graph ?sensor {
+        ?sensor :state ?state_p .
+        ?sensor :lunchEvent ?currentTime .
+    }
 } WHERE {
     # simulation time is globally available and automatically updated
     sim:sim sim:currentTime ?time .

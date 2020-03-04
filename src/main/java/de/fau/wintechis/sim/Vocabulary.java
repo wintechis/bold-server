@@ -2,19 +2,22 @@ package de.fau.wintechis.sim;
 
 import de.fau.wintechis.sparql.ComputeExponentialCDFFunction;
 import de.fau.wintechis.sparql.ComputeNormalCDFFunction;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.sparql.function.FunctionRegistry;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.FunctionRegistry;
 
 public class Vocabulary {
 
+    public static final ValueFactory VALUE_FACTORY = SimpleValueFactory.getInstance();
+
     public static final String NS = "http://ti.rw.fau.de/sim#";
 
-    public static final Property CURRENT_TIME = ResourceFactory.createProperty(NS + "currentTime");
+    public static final IRI CURRENT_TIME = VALUE_FACTORY.createIRI(NS + "currentTime");
 
     public static void registerFunctions() {
-        FunctionRegistry.get().put(NS + "cdf-exp", ComputeExponentialCDFFunction.class);
-        FunctionRegistry.get().put(NS + "cdf-normal", ComputeNormalCDFFunction.class);
+        FunctionRegistry.getInstance().add(new ComputeExponentialCDFFunction());
+        FunctionRegistry.getInstance().add(new ComputeNormalCDFFunction());
     }
 
 }

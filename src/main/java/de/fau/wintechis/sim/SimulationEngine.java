@@ -1,16 +1,22 @@
 package de.fau.wintechis.sim;
 
 import de.fau.wintechis.gsp.GraphStoreHandler;
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.Update;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 
 public class SimulationEngine {
@@ -22,13 +28,13 @@ public class SimulationEngine {
 
     private final Timer timer;
 
-    private final List<String> updates;
+    private final List<Update> updates;
 
-    private final List<String> queries;
+    private final List<TupleQuery> queries;
 
-    private final Map<String, FileWriter> writers;
+    private final Map<TupleQuery, FileWriter> writers;
 
-    private final RDFConnection connection;
+    private final RepositoryConnection connection;
 
     private final Server server;
 
@@ -36,40 +42,50 @@ public class SimulationEngine {
         this.timer = new Timer();
 
         this.updates = new ArrayList<>();
-        // time must be updated first, before any other resource
-        this.updates.add(UPDATE_TIME);
-
         this.queries = new ArrayList<>();
         this.writers = new HashMap<>();
 
-        Model m = ModelFactory.createDefaultModel();
+        Repository repo = new SailRepository(new MemoryStore());
+        connection = repo.getConnection();
+
+        ValueFactory vf = Vocabulary.VALUE_FACTORY;
+        Resource sim = vf.createIRI(Vocabulary.NS, "sim");
         // simulation time is an arbitrary integer starting from 0
         // (makes it easier to formulate time-dependent updates in SPARQL)
-        m.createResource(Vocabulary.NS + "sim").addLiteral(Vocabulary.CURRENT_TIME, 0);
+        connection.add(sim, Vocabulary.CURRENT_TIME, vf.createLiteral(0));
 
-        Dataset dataset = DatasetFactory.create(m);
-        connection = RDFConnectionFactory.connect(dataset);
+        // time must be updated first, before any other resource
+        this.updates.add(connection.prepareUpdate(UPDATE_TIME));
 
         server = new Server(8080); // TODO as env or class constructor argument
-        server.setHandler(new GraphStoreHandler(dataset));
+        server.setHandler(new GraphStoreHandler(repo));
 
         Vocabulary.registerFunctions();
     }
 
     public void registerUpdate(String sparulString) {
-        this.updates.add(sparulString);
+        Update u = connection.prepareUpdate(sparulString);
+        this.updates.add(u);
     }
 
     public void registerQuery(String sparqlString) {
-        this.queries.add(sparqlString);
+        TupleQuery q = connection.prepareTupleQuery(sparqlString);
+        this.queries.add(q);
     }
 
     public void loadData(String filename) {
-        connection.load(filename);
+        // FIXME should allow any file (or URL)
+        URL url = SimulationEngine.class.getClassLoader().getResource(filename);
+        try {
+            // TODO add format to method's signature
+            connection.add(url, GraphStoreHandler.BASE_URI_STRING, RDFFormat.TRIG);
+        } catch (IOException e) {
+            e.printStackTrace(); // TODO clean error handling
+        }
     }
 
     public void run(Integer timeSlot, Integer iterations) {
-        for (String q : queries) {
+        for (TupleQuery q : queries) {
             try {
                 writers.put(q, new FileWriter(q.hashCode() + ".dat"));
             } catch (IOException e) {
@@ -99,14 +115,15 @@ public class SimulationEngine {
 
         @Override
         public void run() {
-            for (String q : queries) {
-                connection.querySelect(q, (qs) -> {
+            for (TupleQuery q : queries) {
+                TupleQueryResult res = q.evaluate();
+                List<String> vars = res.getBindingNames();
+                for (BindingSet mu : q.evaluate()) {
                     String row = "";
 
-                    Iterator<String> it = qs.varNames();
-                    while (it.hasNext()) {
+                    for (String v : vars) {
                         if (!row.isEmpty()) row += "\t";
-                        row += qs.getLiteral(it.next()).getLexicalForm();
+                        row += mu.getValue(v).stringValue();
                     }
                     row += "\n";
 
@@ -115,7 +132,7 @@ public class SimulationEngine {
                     } catch (IOException e) {
                         e.printStackTrace(); // TODO clean error handling
                     }
-                });
+                }
             }
 
             if (count++ > maxIterations) {
@@ -128,14 +145,15 @@ public class SimulationEngine {
                 }
 
                 timer.cancel();
+                connection.close();
                 try {
                     server.stop();
                 } catch (Exception e) {
                     e.printStackTrace(); // TODO clean error handling
                 }
             } else {
-                for (String u : updates) {
-                    connection.update(u);
+                for (Update u : updates) {
+                    u.execute();
                 }
             }
         }

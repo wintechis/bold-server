@@ -1,7 +1,11 @@
 package de.fau.wintechis.sparql;
 
-import org.apache.jena.sparql.expr.NodeValue;
-import org.apache.jena.sparql.function.FunctionBase3;
+import de.fau.wintechis.sim.Vocabulary;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
 
 /**
  * SPARQL function to provide the Cumulative Distribution Function (CDF) value
@@ -11,19 +15,23 @@ import org.apache.jena.sparql.function.FunctionBase3;
  *
  * CDF(x) = (x - mu) / (4 * sigma) + 1/2
  */
-public class ComputeNormalCDFFunction extends FunctionBase3 {
-
+public class ComputeNormalCDFFunction implements Function {
 
     @Override
-    public NodeValue exec(NodeValue mu, NodeValue sigma, NodeValue value) {
-        double m = mu.getDouble();
-        double s = sigma.getDouble();
-        double v = value.getDouble();
+    public String getURI() {
+        return Vocabulary.NS + "cdf-normal";
+    }
 
-        if (v < (m - s)) return NodeValue.makeDecimal(0);
-        if (v > (m + s)) return NodeValue.makeDecimal(1);
+    @Override
+    public Value evaluate(ValueFactory vf, Value... args) throws ValueExprEvaluationException {
+        double mu = ((Literal) args[0]).doubleValue();
+        double sigma = ((Literal) args[1]).doubleValue();;
+        double value = ((Literal) args[2]).doubleValue();
 
-        double cdf = (v - m) / (4 * s) + 0.5;
-        return NodeValue.makeDecimal(cdf);
+        if (value < (mu - sigma)) return vf.createLiteral(0);
+        if (value > (mu + sigma)) return vf.createLiteral(1);
+
+        double cdf = (value - mu) / (4 * sigma) + 0.5;
+        return vf.createLiteral(cdf);
     }
 }
