@@ -10,13 +10,12 @@ import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.query.Update;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
-import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 
@@ -80,15 +79,22 @@ public class SimulationEngine {
         this.queries.add(q);
     }
 
-    public void loadData(String filename) {
-        // FIXME should allow any file (or URL)
+    /**
+     * First tries to open the file from the file system. If it does not exist, interpret it as a resource file.
+     * The default base URI is the local server's.
+     *
+     * @param filename
+     * @throws IOException
+     */
+    public void loadData(String filename) throws IOException {
+        String base = server.getURI().toString();
+        RDFFormat format = Rio.getParserFormatForFileName(filename).orElseThrow(() -> new IOException());
+
+        File f = new File(filename);
         URL url = SimulationEngine.class.getClassLoader().getResource(filename);
-        try {
-            // TODO add format to method's signature
-            connection.add(url, server.getURI().toString(), RDFFormat.TRIG);
-        } catch (IOException e) {
-            e.printStackTrace(); // TODO clean error handling
-        }
+        InputStream is = f.exists() ? new FileInputStream(f) : url.openStream();
+
+        connection.add(is, base, format);
     }
 
     public void run(Integer timeSlot, Integer iterations) {

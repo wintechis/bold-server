@@ -38,7 +38,7 @@ public class GraphStoreHandler extends AbstractHandler {
 
         boolean created = !exists(graphName);
 
-        // TODO send 406 Not Acceptable and 415 Unsupported Media Type if header present
+        // TODO send 406 Not Acceptable and 415 Unsupported Media Type if header present?
         RDFFormat accept = Rio.getParserFormatForMIMEType(request.getHeader("Accept")).orElse(DEFAULT_RDF_FORMAT);
         RDFFormat contentType = Rio.getParserFormatForMIMEType(request.getHeader("Content-Type")).orElse(DEFAULT_RDF_FORMAT);
 

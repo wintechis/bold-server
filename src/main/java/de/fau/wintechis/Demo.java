@@ -8,11 +8,12 @@ import java.io.StringWriter;
 
 public class Demo {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         SimulationEngine engine = new SimulationEngine();
 
         engine.registerUpdate(getResource("/occupancy.rq"));
         engine.registerQuery(getResource("/report.rq"));
+
         engine.loadData("init.trig");
 
         engine.run(100, 720);
