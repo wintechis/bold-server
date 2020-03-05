@@ -10,6 +10,7 @@ import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.query.Update;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
@@ -60,6 +61,12 @@ public class SimulationEngine {
         server = new Server(8080); // TODO as env or class constructor argument
         server.setHandler(new GraphStoreHandler(repo));
 
+        try {
+            server.start();
+        } catch (Exception e) {
+            e.printStackTrace(); // TODO clean error handling
+        }
+
         Vocabulary.registerFunctions();
     }
 
@@ -78,7 +85,7 @@ public class SimulationEngine {
         URL url = SimulationEngine.class.getClassLoader().getResource(filename);
         try {
             // TODO add format to method's signature
-            connection.add(url, GraphStoreHandler.BASE_URI_STRING, RDFFormat.TRIG);
+            connection.add(url, server.getURI().toString(), RDFFormat.TRIG);
         } catch (IOException e) {
             e.printStackTrace(); // TODO clean error handling
         }
@@ -91,12 +98,6 @@ public class SimulationEngine {
             } catch (IOException e) {
                 e.printStackTrace(); // TODO clean error handling
             }
-        }
-
-        try {
-            server.start();
-        } catch (Exception e) {
-            e.printStackTrace(); // TODO clean error handling
         }
 
         TimerTask task = new IterationTask(iterations);

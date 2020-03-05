@@ -1,5 +1,4 @@
 @prefix : <http://example.org/demo#> .
-@base <http://127.0.1.1:8080/> .
 graph <desk1> {  <desk1> :state false . }
 graph <desk2> {  <desk2> :state false . }
 graph <desk3> {  <desk3> :state false . }

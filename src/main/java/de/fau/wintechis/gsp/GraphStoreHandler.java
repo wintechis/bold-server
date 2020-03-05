@@ -21,13 +21,6 @@ import java.net.URI;
  */
 public class GraphStoreHandler extends AbstractHandler {
 
-    /**
-     * Note: a better implementation would take the running server's base instead but it comes with several complications.
-     */
-    public static final String BASE_URI_STRING = "http://ti.rw.fau.de/resources/";
-
-    private static final URI BASE_URI = URI.create(BASE_URI_STRING);
-
     private final RepositoryConnection connection;
 
     public GraphStoreHandler(Repository repo) {
@@ -36,7 +29,8 @@ public class GraphStoreHandler extends AbstractHandler {
 
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        IRI graphName = Vocabulary.VALUE_FACTORY.createIRI(BASE_URI.resolve(target).toString()); // direct addressing
+        URI base = getServer().getURI();
+        IRI graphName = Vocabulary.VALUE_FACTORY.createIRI(base.resolve(target).toString()); // direct addressing
 
         // TODO proper conneg (with translation to/from Model instances)
         RDFFormat accept = RDFFormat.TURTLE;
@@ -44,7 +38,7 @@ public class GraphStoreHandler extends AbstractHandler {
 
         switch (baseRequest.getMethod()) {
             case "GET":
-                response.setHeader("Content-Type", contentType.getDefaultMIMEType());
+                response.setHeader("Content-Type", accept.getDefaultMIMEType());
                 RDFHandler writer = Rio.createWriter(accept, response.getOutputStream());
                 connection.export(writer, graphName);
                 response.setStatus(200);
