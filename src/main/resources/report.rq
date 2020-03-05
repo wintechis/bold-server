@@ -1,11 +1,11 @@
-PREFIX : <http://example.org/demo#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
 SELECT ?time ?count WHERE {
     sim:sim sim:currentTime ?time .
     {
         # counts the number of occupants in the building
         SELECT (count(*) as ?count) WHERE {
-            ?sensor :state ?state .
+            ?occupancy rdf:value ?state .
             FILTER (?state)
         }
     }

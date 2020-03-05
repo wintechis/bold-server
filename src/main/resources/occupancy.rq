@@ -1,20 +1,24 @@
-PREFIX : <http://example.org/demo#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ssn: <http://www.w3.org/ns/ssn/>
+PREFIX ts: <http://buildsys.org/ontologies/Brick#>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
 DELETE {
-    graph ?sensor {
-        ?sensor :state ?state .
+    graph ?occupancy {
+        ?occupancy rdf:value ?state .
     }
 } INSERT {
-    graph ?sensor {
-        ?sensor :state ?state_p .
-        ?sensor :lunchEvent ?currentTime .
+    graph ?occupancy {
+        ?occupancy rdf:value ?state_p .
     }
+    ?sensor sim:lunchEvent ?currentTime .
 } WHERE {
     # simulation time is globally available and automatically updated
     sim:sim sim:currentTime ?time .
 
-    ?sensor :state ?state .
-    OPTIONAL { ?sensor :lunchEvent ?lunchTime . }
+    ?sensor a ts:Occupancy_Sensor ;
+            ssn:hasProperty ?occupancy .
+    ?occupancy rdf:value ?state .
+    OPTIONAL { ?sensor sim:lunchEvent ?lunchTime . }
 
     # times in minute (for convenience, start at 6am)
     BIND (2 * 60 AS ?8am)

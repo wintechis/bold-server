@@ -1,51 +1,74 @@
-@prefix : <http://example.org/demo#> .
-graph <desk1> {  <desk1> :state false . }
-graph <desk2> {  <desk2> :state false . }
-graph <desk3> {  <desk3> :state false . }
-graph <desk4> {  <desk4> :state false . }
-graph <desk5> {  <desk5> :state false . }
-graph <desk6> {  <desk6> :state false . }
-graph <desk7> {  <desk7> :state false . }
-graph <desk8> {  <desk8> :state false . }
-graph <desk9> {  <desk9> :state false . }
-graph <desk10> {  <desk10> :state false . }
-graph <desk11> {  <desk11> :state false . }
-graph <desk12> {  <desk12> :state false . }
-graph <desk13> {  <desk13> :state false . }
-graph <desk14> {  <desk14> :state false . }
-graph <desk15> {  <desk15> :state false . }
-graph <desk16> {  <desk16> :state false . }
-graph <desk17> {  <desk17> :state false . }
-graph <desk18> {  <desk18> :state false . }
-graph <desk19> {  <desk19> :state false . }
-graph <desk20> {  <desk20> :state false . }
-graph <desk21> {  <desk21> :state false . }
-graph <desk22> {  <desk22> :state false . }
-graph <desk23> {  <desk23> :state false . }
-graph <desk24> {  <desk24> :state false . }
-graph <desk25> {  <desk25> :state false . }
-graph <desk26> {  <desk26> :state false . }
-graph <desk27> {  <desk27> :state false . }
-graph <desk28> {  <desk28> :state false . }
-graph <desk29> {  <desk29> :state false . }
-graph <desk30> {  <desk30> :state false . }
-graph <desk31> {  <desk31> :state false . }
-graph <desk32> {  <desk32> :state false . }
-graph <desk33> {  <desk33> :state false . }
-graph <desk34> {  <desk34> :state false . }
-graph <desk35> {  <desk35> :state false . }
-graph <desk36> {  <desk36> :state false . }
-graph <desk37> {  <desk37> :state false . }
-graph <desk38> {  <desk38> :state false . }
-graph <desk39> {  <desk39> :state false . }
-graph <desk40> {  <desk40> :state false . }
-graph <desk41> {  <desk41> :state false . }
-graph <desk42> {  <desk42> :state false . }
-graph <desk43> {  <desk43> :state false . }
-graph <desk44> {  <desk44> :state false . }
-graph <desk45> {  <desk45> :state false . }
-graph <desk46> {  <desk46> :state false . }
-graph <desk47> {  <desk47> :state false . }
-graph <desk48> {  <desk48> :state false . }
-graph <desk49> {  <desk49> :state false . }
-graph <desk50> {  <desk50> :state false . }
+@prefix bf: <http://buildsys.org/ontologies/BrickFrame#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix tag: <http://buildsys.org/ontologies/BrickTag#> .
+@prefix ts: <http://buildsys.org/ontologies/Brick#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+@prefix ssn: <http://www.w3.org/ns/ssn/> .
+
+# sampled from https://github.com/BuildSysUniformMetadata/GroundTruth/blob/2e48662/building_instances/IBM_B3.ttl
+
+<Room_SOR42_G_10> {
+    <Room_SOR42_G_10> a ts:Room ;
+        rdfs:label "SOR42_G_10"@en ;
+        bf:hasPoint <d01_Z1_G10_AISLE_1_G1_8R_MM17_TRIGGER>,
+            <d01_Z5_G1_WORKSTATIONS4_MM46_TRIGGER> ;
+        bf:isFedBy <Lighting_GF_M17>,
+            <Lighting_GF_M46> ;
+        bf:isPartOf <Floor_GroundFloor> .
+}
+
+<Room_SOR42_G_11> {
+    <Room_SOR42_G_11> a ts:Room ;
+        rdfs:label "SOR42_G_11"@en ;
+        bf:hasPoint <B3_42_1F_Z5_G2_LGHT_LOAD>,
+            <B3_42_GF_Z5_G2_LGHT_FAULT>,
+            <B3_42_GF_Z5_G2_LGHT_LOAD>,
+            <B3_42_GF_Z5_G3_LGHT_FAULT>,
+            <B3_42_GF_Z5_G3_LGHT_LOAD>,
+            <d01_Z1_G10_AISLE_1_G1_8R_SM18_TRIGGER>,
+            <d01_Z5_G2_WORKSTATIONS4_MM47_TRIGGER>,
+            <d01_Z5_G3_WORKSTATIONS4_MM48_TRIGGER> ;
+        bf:isFedBy <Lighting_GF_M18>,
+            <Lighting_GF_M47>,
+            <Lighting_GF_M48> ;
+        bf:isPartOf <Floor_GroundFloor> .
+}
+
+<d01_Z1_G10_AISLE_1_G1_8R_MM17_TRIGGER> {
+    <d01_Z1_G10_AISLE_1_G1_8R_MM17_TRIGGER> a ts:Occupancy_Sensor,
+            bf:Label,
+            bf:TagSet ;
+        rdfs:label "01_Z1_G10_AISLE 1 G1_8R_MM17 TRIGGER"@en ;
+        bf:isLocatedIn <Room_SOR42_G_10> ;
+        bf:isPointOf <Lighting_GF_M17>,
+            <Room_SOR42_G_10> ;
+        ssn:hasProperty <d01_Z1_G10_AISLE_1_G1_8R_MM17_TRIGGER#it> .
+}
+
+<d01_Z1_G10_AISLE_1_G1_8R_SM18_TRIGGER> {
+    <d01_Z1_G10_AISLE_1_G1_8R_SM18_TRIGGER> a ts:Occupancy_Sensor,
+            bf:Label,
+            bf:TagSet ;
+        rdfs:label "01_Z1_G10_AISLE 1 G1_8R_SM18 TRIGGER"@en ;
+        bf:isLocatedIn <Room_SOR42_G_11> ;
+        bf:isPointOf <Lighting_GF_M18>,
+            <Room_SOR42_G_11> ;
+        ssn:hasProperty <d01_Z1_G10_AISLE_1_G1_8R_SM18_TRIGGER#it> .
+}
+
+<d01_Z1_G10_AISLE_1_G1_8R_MM17_TRIGGER#it> {
+    <d01_Z1_G10_AISLE_1_G1_8R_MM17_TRIGGER#it> a sosa:ActuatableProperty, sosa:ObservableProperty, ssn:Property ;
+                                               rdf:value false ;
+                                               foaf:isPrimaryTopicOf <d01_Z1_G10_AISLE_1_G1_8R_MM17_TRIGGER> .
+}
+
+<d01_Z1_G10_AISLE_1_G1_8R_SM18_TRIGGER#it> {
+    <d01_Z1_G10_AISLE_1_G1_8R_SM18_TRIGGER#it> a sosa:ActuatableProperty, sosa:ObservableProperty, ssn:Property ;
+                                               rdf:value false ;
+                                               foaf:isPrimaryTopicOf <d01_Z1_G10_AISLE_1_G1_8R_SM18_TRIGGER> .
+}
