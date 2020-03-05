@@ -11,26 +11,12 @@ public class Demo {
     public static void main(String[] args) throws IOException {
         SimulationEngine engine = new SimulationEngine();
 
-        engine.registerUpdate(getResource("/occupancy.rq"));
-        engine.registerQuery(getResource("/report.rq"));
+        engine.registerUpdate("occupancy.rq");
+        engine.registerQuery("report.rq");
 
         engine.loadData("init.trig");
 
         engine.run(100, 720);
-    }
-
-    private static String getResource(String resourceName) {
-        InputStream is = Demo.class.getResourceAsStream(resourceName);
-        StringWriter w = new StringWriter();
-
-        int buf = -1;
-        try {
-            while ((buf = is.read()) > -1) w.write(buf);
-        } catch (IOException e) {
-            System.err.println("Cannot fetch resource: " + resourceName);
-        }
-
-        return w.toString();
     }
 
 }
