@@ -6,8 +6,10 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFHandler;
+import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.Rio;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,6 +23,8 @@ import java.net.URI;
  */
 public class GraphStoreHandler extends AbstractHandler {
 
+    public static final RDFFormat DEFAULT_RDF_FORMAT = RDFFormat.TURTLE;
+
     private final RepositoryConnection connection;
 
     public GraphStoreHandler(Repository repo) {
@@ -32,45 +36,59 @@ public class GraphStoreHandler extends AbstractHandler {
         URI base = getServer().getURI();
         IRI graphName = Vocabulary.VALUE_FACTORY.createIRI(base.resolve(target).toString()); // direct addressing
 
-        // TODO proper conneg (with translation to/from Model instances)
-        RDFFormat accept = RDFFormat.TURTLE;
-        RDFFormat contentType = RDFFormat.TURTLE;
+        boolean created = !exists(graphName);
 
-        switch (baseRequest.getMethod()) {
-            case "GET":
-                response.setHeader("Content-Type", accept.getDefaultMIMEType());
-                RDFHandler writer = Rio.createWriter(accept, response.getOutputStream());
-                connection.export(writer, graphName);
-                response.setStatus(200);
-                // TODO return 404 if no such graph
-                break;
+        // TODO send 406 Not Acceptable and 415 Unsupported Media Type if header present
+        RDFFormat accept = Rio.getParserFormatForMIMEType(request.getHeader("Accept")).orElse(DEFAULT_RDF_FORMAT);
+        RDFFormat contentType = Rio.getParserFormatForMIMEType(request.getHeader("Content-Type")).orElse(DEFAULT_RDF_FORMAT);
 
-            case "PUT":
-                // TODO do both operations in a single transaction
-                connection.clear(graphName);
-                connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, graphName);
-                response.setStatus(204);
-                // TODO or 201 if graph created
-                break;
+        try {
+            switch (baseRequest.getMethod()) {
+                case "GET":
+                    if (!created) {
+                        response.setHeader("Content-Type", accept.getDefaultMIMEType());
+                        RDFHandler writer = Rio.createWriter(accept, response.getOutputStream());
+                        connection.export(writer, graphName);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                    } else {
+                        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    }
+                    break;
 
-            case "POST":
-                connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, graphName);
-                response.setStatus(204);
-                // TODO or 201 if graph created
-                break;
+                case "PUT":
+                    // TODO do both operations in a single transaction
+                    connection.clear(graphName);
+                    connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, graphName);
+                    response.setStatus(created ? HttpServletResponse.SC_CREATED : HttpServletResponse.SC_NO_CONTENT);
+                    break;
 
-            case "DELETE":
-                connection.clear(graphName);
-                response.setStatus(204);
-                // TODO return 404 if no such graph
-                break;
+                case "POST":
+                    connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, graphName);
+                    response.setStatus(created ? HttpServletResponse.SC_CREATED : HttpServletResponse.SC_NO_CONTENT);
+                    break;
 
-            default:
-                response.setStatus(405);
-                break;
-        }
+                case "DELETE":
+                    if (!created) {
+                        connection.clear(graphName);
+                        response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                    } else {
+                        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    }
+                    break;
+
+                default:
+                    response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+                    break;
+            }
+        } catch (RDFParseException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+        } // other exceptions caught by jetty and 500 Internal Server Error returned
 
         baseRequest.setHandled(true);
+    }
+
+    private boolean exists(IRI graphName) {
+        return connection.hasStatement(null, null, null, false, graphName);
     }
 
 }
