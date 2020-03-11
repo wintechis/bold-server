@@ -14,7 +14,7 @@ public class Demo {
         engine.registerUpdate("occupancy.rq");
         engine.registerQuery("report.rq");
 
-        engine.loadData("init.trig");
+        engine.loadData("IBM_B3.trig");
 
         engine.run(100, 720);
     }
