@@ -1,0 +1,15 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX sim: <http://ti.rw.fau.de/sim#>
+SELECT ?time ?count1 ?count2 WHERE {
+    sim:sim sim:currentTime ?time .
+    {
+        # counts the number of lights that were toggled in the building
+        SELECT (count(*) as ?count) WHERE {
+            ?switch a brick:Lighting .
+            ?switch ssn:hasProperty ?p .
+            ?p rdf:value ?state ;
+               sim:initialValue ?init .
+            FILTER (?state != ?init)
+        }
+    }
+}
