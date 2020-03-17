@@ -1,52 +1,46 @@
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX ssn: <http://www.w3.org/ns/ssn/>
-PREFIX ts: <http://buildsys.org/ontologies/Brick#>
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX brick: <http://buildsys.org/ontologies/Brick#>
+PREFIX bf: <http://buildsys.org/ontologies/BrickFrame#>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
+
+# occupancy sensor gets updated if move action
+
 DELETE {
+    GRAPH ?fromOccupancy { ?fromOccupancy rdf:value ?fromState }
+    GRAPH ?toOccupancy { ?toOccupancy rdf:value ?toState }
 } INSERT {
+    GRAPH ?fromOccupancy { ?fromOccupancy rdf:value "off" }
+    GRAPH ?toOccupancy { ?toOccupancy rdf:value "on" }
 } WHERE {
-    # simulation time is globally available and automatically updated
     sim:sim sim:currentTime ?time .
 
-    # times in minute (for convenience, start at 6am)
-    BIND (2 * 60 AS ?8am)
-    BIND (6 * 60 AS ?12pm)
-    BIND (8 * 60 AS ?2pm)
-    BIND (12 * 60 AS ?6pm)
+    ?action a sim:MoveAction ;
+            sim:agent ?occupant ;
+            sim:fromLocation ?from ;
+            sim:toLocation ?to ;
+            sim:atTime ?time .
 
     OPTIONAL {
-        ?sensor a ts:Lighting ;
-                ssn:hasProperty ?light .
-        ?light rdf:value ?state .
-
-        # increasing chance the occupant randomly switches on/off light as illuminance decreases
-        BIND (rand() < 0.45 AS ?lunchBreak)
+        ?from bf:hasPoint ?fromSensor .
+        ?fromSensor a brick:Occupancy_Sensor ; sosa:observes ?fromOccupancy .
+        ?fromOccupancy rdf:value ?fromState .
     }
 
     OPTIONAL {
-        # increasing chance the occupant randomly turns up (down) heating as temperature decreases (increases)
-        # TODO
+        ?to bf:hasPoint ?toSensor .
+        ?toSensor a brick:Occupancy_Sensor ; sosa:observes ?toOccupancy .
+        ?toOccupancy rdf:value ?toState .
     }
-
-    OPTIONAL {
-        # ~60% chance the occupent turns on the appliance when entering (beamer, printer).
-    }
-
-    # case 1: occupant has not arrived yet -> ~50% chance to arrive after 1h
-    # case 2: occupant is at their desk, soon to go for lunch -> ~50% chance to leave after 10min
-    # case 3: occupant is coming back from lunch break -> ~1h break in average (+/- 10min)
-    # case 4: occupant is leaving the office -> ~50% chance to arrive after 2h
-    BIND (
-        if(?time >= ?8am && ?time < ?12pm && !?state, rand() <= sim:cdf-exp(1 / 60, ?time - ?8am),
-        if(?time >= ?12pm && ?time < ?2pm && ?state, rand() <= sim:cdf-exp(1 / 10, ?time - ?12pm),
-        if(?time >= ?12pm && ?time < ?2pm && !?state, rand() <= sim:cdf-normal(60, 10, ?time - ?lunchTime),
-        if(?time >= ?2pm && ?time < ?6pm && ?state, rand() > sim:cdf-exp(1 / 120, ?time - ?2pm),
-        ?state))))
-
-        AS ?state_p
-    )
-
-    # modeling lunch break requires memory of when occupants went for lunch
-    BIND (strlen(0) AS ?undefined)
-    BIND (if(?time >= ?12pm && ?time < ?2pm && !bound(?lunchTime) && !?state_p, ?time, ?undefined) AS ?currentTime)
 }
+
+# switch status gets updated (light, appliance)
+
+# illuminance gets updated
+
+# electric consumption gets updated
+
+# thermostat gets updated (stateful update)
+
+# temperature gets updated through the action of radiators

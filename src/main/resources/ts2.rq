@@ -1,5 +1,7 @@
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
+PREFIX brick: <http://buildsys.org/ontologies/Brick#>
+PREFIX ssn: <http://www.w3.org/ns/ssn/>
 SELECT ?time ?count1 ?count2 WHERE {
     sim:sim sim:currentTime ?time .
     {
