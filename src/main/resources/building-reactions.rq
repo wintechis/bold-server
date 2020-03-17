@@ -1,0 +1,52 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ssn: <http://www.w3.org/ns/ssn/>
+PREFIX ts: <http://buildsys.org/ontologies/Brick#>
+PREFIX sim: <http://ti.rw.fau.de/sim#>
+DELETE {
+} INSERT {
+} WHERE {
+    # simulation time is globally available and automatically updated
+    sim:sim sim:currentTime ?time .
+
+    # times in minute (for convenience, start at 6am)
+    BIND (2 * 60 AS ?8am)
+    BIND (6 * 60 AS ?12pm)
+    BIND (8 * 60 AS ?2pm)
+    BIND (12 * 60 AS ?6pm)
+
+    OPTIONAL {
+        ?sensor a ts:Lighting ;
+                ssn:hasProperty ?light .
+        ?light rdf:value ?state .
+
+        # increasing chance the occupant randomly switches on/off light as illuminance decreases
+        BIND (rand() < 0.45 AS ?lunchBreak)
+    }
+
+    OPTIONAL {
+        # increasing chance the occupant randomly turns up (down) heating as temperature decreases (increases)
+        # TODO
+    }
+
+    OPTIONAL {
+        # ~60% chance the occupent turns on the appliance when entering (beamer, printer).
+    }
+
+    # case 1: occupant has not arrived yet -> ~50% chance to arrive after 1h
+    # case 2: occupant is at their desk, soon to go for lunch -> ~50% chance to leave after 10min
+    # case 3: occupant is coming back from lunch break -> ~1h break in average (+/- 10min)
+    # case 4: occupant is leaving the office -> ~50% chance to arrive after 2h
+    BIND (
+        if(?time >= ?8am && ?time < ?12pm && !?state, rand() <= sim:cdf-exp(1 / 60, ?time - ?8am),
+        if(?time >= ?12pm && ?time < ?2pm && ?state, rand() <= sim:cdf-exp(1 / 10, ?time - ?12pm),
+        if(?time >= ?12pm && ?time < ?2pm && !?state, rand() <= sim:cdf-normal(60, 10, ?time - ?lunchTime),
+        if(?time >= ?2pm && ?time < ?6pm && ?state, rand() > sim:cdf-exp(1 / 120, ?time - ?2pm),
+        ?state))))
+
+        AS ?state_p
+    )
+
+    # modeling lunch break requires memory of when occupants went for lunch
+    BIND (strlen(0) AS ?undefined)
+    BIND (if(?time >= ?12pm && ?time < ?2pm && !bound(?lunchTime) && !?state_p, ?time, ?undefined) AS ?currentTime)
+}

@@ -1,0 +1,102 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX ssn: <http://www.w3.org/ns/ssn/>
+PREFIX brick: <http://buildsys.org/ontologies/Brick#>
+PREFIX sim: <http://ti.rw.fau.de/sim#>
+
+# occupant moves inside and outside the building
+
+DELETE {
+    ?action a sim:MoveAction ;
+               sim:agent ?occupant ;
+               sim:fromLocation ?oldFrom ;
+               sim:toLocation ?oldTo ;
+               sim:atTime ?oldTime .
+} INSERT {
+    ?action a sim:MoveAction ;
+            sim:agent ?occupant ;
+            sim:fromLocation ?oldTo ;
+            sim:toLocation ?to ;
+            sim:atTime ?time .
+} WHERE {
+    # case 1: occupant has not arrived yet -> ~50% chance to arrive after 1h
+    # case 2: occupant is at their desk, soon to go for lunch -> ~50% chance to leave after 10min
+    # case 3: occupant is coming back from lunch break -> ~1h break in average (+/- 10min)
+    # case 4: occupant is leaving the office -> ~50% chance to leave after 2h
+    {
+        sim:sim sim:currentTime ?time .
+        BIND (2 * 60 AS ?8am)
+        BIND (6 * 60 AS ?12pm)
+        FILTER (?time >= ?8am && ?time < ?12pm && rand() <= sim:cdf-exp(1 / 60, ?time - ?8am))
+
+        ?occupant a sim:Occupant .
+
+        BIND (iri(concat(str(?occupant), "-move")) AS ?action)
+        FILTER NOT EXISTS { ?action a sim:MoveAction }
+        ?occupant sim:workplace ?to .
+        BIND (sim:away AS ?oldTo)
+    } UNION {
+        sim:sim sim:currentTime ?time .
+        BIND (6 * 60 AS ?12pm)
+        BIND (8 * 60 AS ?2pm)
+        FILTER (?time >= ?12pm && ?time < ?2pm && rand() <= sim:cdf-exp(1 / 10, ?time - ?12pm))
+
+        ?occupant a sim:Occupant .
+
+        BIND (iri(concat(str(?occupant), "-move")) AS ?action)
+        ?occupant sim:workplace ?oldTo .
+        #FILTER (rand() < 0.45) # ~45% chance for the occupant to take a lunch break
+        BIND (sim:cafeteria AS ?to)
+    } UNION {
+        sim:sim sim:currentTime ?time .
+        BIND (6 * 60 AS ?12pm)
+        BIND (8 * 60 AS ?2pm)
+        FILTER (?time >= ?12pm && ?time < ?2pm && rand() <= sim:cdf-normal(60, 10, ?time - ?12pm)) # FIXME ?oldTime
+
+        ?occupant a sim:Occupant .
+
+        BIND (iri(concat(str(?occupant), "-move")) AS ?action)
+        BIND (sim:cafeteria AS ?oldTo)
+        ?occupant sim:workplace ?to .
+    } UNION {
+        sim:sim sim:currentTime ?time .
+        BIND (8 * 60 AS ?2pm)
+        BIND (12 * 60 AS ?6pm)
+        FILTER (?time >= ?2pm && ?time < ?6pm && rand() > sim:cdf-exp(1 / 120, ?time - ?2pm))
+
+        ?occupant a sim:Occupant .
+
+        BIND (iri(concat(str(?occupant), "-move")) AS ?action)
+        ?occupant sim:workplace ?oldTo .
+        BIND (sim:away AS ?to)
+    }
+    # TODO get rid of redundancy in UNION components (variable scoping problem)?
+    # note: times are in minute (for convenience, simulation start at 6am)
+
+    OPTIONAL {
+        ?action a sim:MoveAction ;
+                   sim:agent ?occupant ;
+                   sim:fromLocation ?oldFrom ;
+                   sim:toLocation ?oldTo ;
+                   sim:atTime ?oldTime .
+    }
+}
+
+# occupant randomly switches on/off light in old/new location
+# TODO make it conditional with illuminance level
+
+#INSERT {
+#    ?action a sim:SwitchAction .
+#} WHERE {
+#    sim:sim sim:currentTime ?time .
+#
+#    ?action a sim:MoveAction ;
+#            sim:atTime ?time .
+#
+#     # TODO to finish
+#}
+
+# occupant randomly switches on/off appliances in old/new location
+
+# occupant randomly changes thermostat
+# TODO make it conditional with indoor temperature

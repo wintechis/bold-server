@@ -1,0 +1,846 @@
+@prefix sim:   <http://ti.rw.fau.de/sim#> .
+@prefix brick: <http://buildsys.org/ontologies/Brick#> .
+
+<Room_SOR42_G_U5#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U5> .
+
+<Room_SOR44_G_U18#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U18> .
+
+<Room_TopAisle#occupant> a sim:Occupant;
+  sim:workplace <Room_TopAisle> .
+
+<Room_SOR42_G_U13#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U13> .
+
+<Room_SOR46_G_U31B#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U31B> .
+
+<Room_SOR42_1_U9#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U9> .
+
+<Room_SOR44_G_U10#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U10> .
+
+<Room_OpenPlan41129#occupant> a sim:Occupant;
+  sim:workplace <Room_OpenPlan41129> .
+
+<Room_SOR42_1_U14#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U14> .
+
+<Room_SOR42_1_U5#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U5> .
+
+<Room_SOR42_G_U2#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U2> .
+
+<Room_SOR44_G_U15#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U15> .
+
+<Room_SOR42_G_09#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_09> .
+
+<Room_SOR46_G_U2#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U2> .
+
+<Room_SOR46_G_U8#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U8> .
+
+<Room_SOR46_G_Expo_WC#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_Expo_WC> .
+
+<Room_SOR46_G_U17#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U17> .
+
+<Room_SOR46_G_U23#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U23> .
+
+<Room_SOR42_G_WC#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_WC> .
+
+<Room_SOR42_G_15#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_15> .
+
+<Room_SOR44_G_U27#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U27> .
+
+<Room_SOR46_G_U29#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U29> .
+
+<Room_SOR42_G_08#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_08> .
+
+<Room_SOR42_G_35#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_35> .
+
+<Room_SOR42_F_8#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_8> .
+
+<Room_SOR42_F_20#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_20> .
+
+<Room_SOR44_1_U1#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U1> .
+
+<Room_SOR44_G_U1#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U1> .
+
+<Room_SOR46_G_U28#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U28> .
+
+<Room_SOR42_1_U23#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U23> .
+
+<Room_CollaborationSpace#occupant> a sim:Occupant;
+  sim:workplace <Room_CollaborationSpace> .
+
+<Room_SOR42_G_U33#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U33> .
+
+<Room_SOR42_G_36#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_36> .
+
+<Room_Kavanagh#occupant> a sim:Occupant;
+  sim:workplace <Room_Kavanagh> .
+
+<Room_SOR44_1_U15#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U15> .
+
+<Room_SOR42_G_16#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_16> .
+
+<Room_SOR44_G_U5#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U5> .
+
+<Room_SOR42_G_05#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_05> .
+
+<Room_SOR44_1_U2#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U2> .
+
+<Room_SOR44_G_U2#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U2> .
+
+<Room_SOR42_F_17#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_17> .
+
+<Room_SOR42_F_6#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_6> .
+
+<Room_TO#occupant> a sim:Occupant;
+  sim:workplace <Room_TO> .
+
+<Room_SOR42_G_10#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_10> .
+
+<Room_SOR42_G_U16#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U16> .
+
+<Room_DisabledWC#occupant> a sim:Occupant;
+  sim:workplace <Room_DisabledWC> .
+
+<Room_SOR44_G_U30#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U30> .
+
+<Room_SOR42_G_U28#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U28> .
+
+<Room_SOR44_G_U19#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U19> .
+
+<Room_SOR44_1_U8#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U8> .
+
+<Room_SOR44_G_U29#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U29> .
+
+<Room_SOR44_G_U21#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U21> .
+
+<Room_SOR44_G_U3#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U3> .
+
+<Room_SOR42_G_U19#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U19> .
+
+<Room_SOR44_1_U3#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U3> .
+
+<Room_SOR46_G_U24A#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U24A> .
+
+<Room_SOR42_G_11#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_11> .
+
+<Room_SOR42_G_U7#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U7> .
+
+<Room_SOR42_F_2#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_2> .
+
+<Room_SOR42_1_U4#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U4> .
+
+<Room_SOR42_G_22#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_22> .
+
+<Room_SOR46_G_U7#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U7> .
+
+<Room_SOR42_1_U13#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U13> .
+
+<Room_SOR46_G_U22#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U22> .
+
+<Room_SOR42_1_U19#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U19> .
+
+<Room_SOR44_1_U4#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U4> .
+
+<Room_SOR44_G_U4#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U4> .
+
+<Room_Reception#occupant> a sim:Occupant;
+  sim:workplace <Room_Reception> .
+
+<Room_23#occupant> a sim:Occupant;
+  sim:workplace <Room_23> .
+
+<Room_Atrium#occupant> a sim:Occupant;
+  sim:workplace <Room_Atrium> .
+
+<Room_SOR44_1_U14#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U14> .
+
+<Room_SOR44_1_U12#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U12> .
+
+<Room_SOR42_G_21#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_21> .
+
+<Room_SOR42_G_U4#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U4> .
+
+<Room_Aisle#occupant> a sim:Occupant;
+  sim:workplace <Room_Aisle> .
+
+<Room_SOR44_1_U5#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U5> .
+
+<Room_SOR42_G_U18#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U18> .
+
+<Room_SOR42_G_FEMALE_WC#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_FEMALE_WC> .
+
+<Room_SOR42_G_U3#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U3> .
+
+<Room_SOR42_G_U1#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U1> .
+
+<Room_SOR42_1_U15#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U15> .
+
+<Room_SOR42_G_20#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_20> .
+
+<Room_Training#occupant> a sim:Occupant;
+  sim:workplace <Room_Training> .
+
+<Room_SOR42_G_U31#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U31> .
+
+<Room_SOR44_G_U35#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U35> .
+
+<Room_Beckett#occupant> a sim:Occupant;
+  sim:workplace <Room_Beckett> .
+
+<Room_SOR46_G_U24B#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U24B> .
+
+<Room_SOR42_G_28#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_28> .
+
+<Room_SOR42_F_23#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_23> .
+
+<Room_Wilde#occupant> a sim:Occupant;
+  sim:workplace <Room_Wilde> .
+
+<Room_SOR42_G_U11#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U11> .
+
+<Room_SOR44_G_U20#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U20> .
+
+<Room_SOR44_1_U6#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U6> .
+
+<Room_SOR44_G_U6#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U6> .
+
+<Room_SOR44_G_U26#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U26> .
+
+<Room_Corridor#occupant> a sim:Occupant;
+  sim:workplace <Room_Corridor> .
+
+<Room_SOR42_G_U21#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U21> .
+
+<Room_SOR42_F_9#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_9> .
+
+<Room_SOR42_F_5#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_5> .
+
+<Room_SOR42_F_WC#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_WC> .
+
+<Room_SOR42_1_U16#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U16> .
+
+<Room_SOR44_G_U25#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U25> .
+
+<Room_SOR46_G_U15#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U15> .
+
+<Room_SOR42_F_1#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_1> .
+
+<Room_FemaleWC_Shower#occupant> a sim:Occupant;
+  sim:workplace <Room_FemaleWC_Shower> .
+
+<Room_WELLNS#occupant> a sim:Occupant;
+  sim:workplace <Room_WELLNS> .
+
+<Room_SOR44_1_U7#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U7> .
+
+<Room_SOR44_G_U7#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U7> .
+
+<Room_SOR42_1_U18#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U18> .
+
+<Room_SOR42_G_25#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_25> .
+
+<Room_SOR42_G_U12#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U12> .
+
+<Room_SOR44_G_U8#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U8> .
+
+<Room_SOR42_G_U24#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U24> .
+
+<Room_CommsRoom#occupant> a sim:Occupant;
+  sim:workplace <Room_CommsRoom> .
+
+<Room_FrontAisle#occupant> a sim:Occupant;
+  sim:workplace <Room_FrontAisle> .
+
+<Room_SOR46_G_U26B#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U26B> .
+
+<Room_CarCharge#occupant> a sim:Occupant;
+  sim:workplace <Room_CarCharge> .
+
+<Room_QR37#occupant> a sim:Occupant;
+  sim:workplace <Room_QR37> .
+
+<Room_SOR44_G_U16#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U16> .
+
+<Room_SOR42_F_19#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_19> .
+
+<Room_SOR42_F_4#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_4> .
+
+<Room_SOR44_1_U9#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U9> .
+
+<Room_SOR44_G_U9#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U9> .
+
+<Room_SOR42_F_14#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_14> .
+
+<Room_SOR44_G_U28#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U28> .
+
+<Room_SOR42_G_23#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_23> .
+
+<Room_BackAisle#occupant> a sim:Occupant;
+  sim:workplace <Room_BackAisle> .
+
+<Room_QR029#occupant> a sim:Occupant;
+  sim:workplace <Room_QR029> .
+
+<Room_TraceHeat#occupant> a sim:Occupant;
+  sim:workplace <Room_TraceHeat> .
+
+<Room_SOR42_G_24#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_24> .
+
+<Room_SOR46_G_U14#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U14> .
+
+<Room_SOR46_G_U12#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U12> .
+
+<Room_SOR42_G_U23#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U23> .
+
+<Room_SOR42_G_U29#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U29> .
+
+<Room_QR35#occupant> a sim:Occupant;
+  sim:workplace <Room_QR35> .
+
+<Room_SOR42_F_13#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_13> .
+
+<Room_Briefcenter#occupant> a sim:Occupant;
+  sim:workplace <Room_Briefcenter> .
+
+<Room_SOR42_F_7#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_7> .
+
+<Room_SOR44_1_U10#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U10> .
+
+<Room_SOR42_G_U17#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U17> .
+
+<Room_SOR44_G_U13#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U13> .
+
+<Room_Clean#occupant> a sim:Occupant;
+  sim:workplace <Room_Clean> .
+
+<Room_SOR42_G_U38#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U38> .
+
+<Room_SOR46_AHU46#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_AHU46> .
+
+<Room_SOR44_G_U31#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U31> .
+
+<Room_SOR42_G_U8#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U8> .
+
+<Room_SOR44_G_U36#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U36> .
+
+<Room_SOR44_G_U34#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U34> .
+
+<Room_SOR42_F_22#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_22> .
+
+<Room_SOR46_G_U30#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U30> .
+
+<Room_SOR42_G_U22#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U22> .
+
+<Room_FemaleWC#occupant> a sim:Occupant;
+  sim:workplace <Room_FemaleWC> .
+
+<Room_SOR44_G_U24#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U24> .
+
+<Room_SOR42_G_17#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_17> .
+
+<Room_SOR42_F_21#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_21> .
+
+<Room_SOR44_1_U13#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U13> .
+
+<Room_SOR46_G_U31#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U31> .
+
+<Room_SOR42_1_U6#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U6> .
+
+<Room_SOR44_G_U14#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U14> .
+
+<Room_SOR44_1_U19#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U19> .
+
+<Room_SOR42_F_15#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_15> .
+
+<Room_SOR46_G_U32#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U32> .
+
+<Room_UPSRM#occupant> a sim:Occupant;
+  sim:workplace <Room_UPSRM> .
+
+<Room_BoardRoom#occupant> a sim:Occupant;
+  sim:workplace <Room_BoardRoom> .
+
+<Room_SOR46_G_U11#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U11> .
+
+<Room_SOR42_G_U30#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U30> .
+
+<Room_SOR42_G_U36#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U36> .
+
+<Room_SOR46_G_U33#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U33> .
+
+<Room_SOR42_1_U11#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U11> .
+
+<Room_SOR46_G_U16#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U16> .
+
+<Room_SOR44_G_U32#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U32> .
+
+<Room_SOR42_G_U26#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U26> .
+
+<Room_SOR44_1_U17#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U17> .
+
+<Room_SOR42_G_32#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_32> .
+
+<Room_SOR46_G_U25#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U25> .
+
+<Room_SOR42_G_U34#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U34> .
+
+<Room_SOR46_G_U34#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U34> .
+
+<Room_SOR44_1_U18#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U18> .
+
+<Room_SOR42_1_U2#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U2> .
+
+<Room_SOR44_G_U33#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U33> .
+
+<Room_SOR44_G_U17#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U17> .
+
+<Room_SOR42_1_U21#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U21> .
+
+<Room_SOR42_G_Center_Aile#occupant> a
+    sim:Occupant;
+  sim:workplace <Room_SOR42_G_Center_Aile> .
+
+<Room_SOR42_G_U32#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U32> .
+
+<Room_SOR46_G_U10#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U10> .
+
+<Room_SOR46_G_U35#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U35> .
+
+<Room_SOR46_G_U9#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U9> .
+
+<Room_SOR42_G_03#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_03> .
+
+<Room_OpenOffice#occupant> a sim:Occupant;
+  sim:workplace <Room_OpenOffice> .
+
+<Room_SOR42_F_16#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_16> .
+
+<Room_Coffeedesk#occupant> a sim:Occupant;
+  sim:workplace <Room_Coffeedesk> .
+
+<Room_SOR42_G_06#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_06> .
+
+<Room_SOR42_1_U7#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U7> .
+
+<Room_SOR42_G_02#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_02> .
+
+<Room_SOR42_G_U39#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U39> .
+
+<Room_ExpoSpaceWC#occupant> a sim:Occupant;
+  sim:workplace <Room_ExpoSpaceWC> .
+
+<Room_SOR42_1_U3#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U3> .
+
+<Room_SOR44_G_U23#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U23> .
+
+<Room_QR31#occupant> a sim:Occupant;
+  sim:workplace <Room_QR31> .
+
+<Room_SOR46_G_U1#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U1> .
+
+<Room_SOR46_G_U19#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U19> .
+
+<Room_SOR42_G_U35#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U35> .
+
+<Room_SOR42_G_19#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_19> .
+
+<Room_MeetingRoom#occupant> a sim:Occupant;
+  sim:workplace <Room_MeetingRoom> .
+
+<Room_SOR44_G_U37#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U37> .
+
+<Room_MetHal#occupant> a sim:Occupant;
+  sim:workplace <Room_MetHal> .
+
+<Room_SOR42_G_U6#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U6> .
+
+<Room_SOR46_G_U26A#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U26A> .
+
+<Room_SOR42_G_U37#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U37> .
+
+<Room_SOR44_1_U16#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U16> .
+
+<Room_SOR46_G_U6#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U6> .
+
+<Room_SOR42_G_MALE_WC#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_MALE_WC> .
+
+<Room_SOR46_G_U3#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U3> .
+
+<Room_SOR46_G_U21#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U21> .
+
+<Room_SOR42_F_18#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_F_18> .
+
+<Room_QR29#occupant> a sim:Occupant;
+  sim:workplace <Room_QR29> .
+
+<Room_QR031#occupant> a sim:Occupant;
+  sim:workplace <Room_QR031> .
+
+<Room_SOR42_1_U1#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U1> .
+
+<Room_SOR42_1_U12#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U12> .
+
+<Room_SOR44_G_U11#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U11> .
+
+<Room_SOR46_G_U4#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U4> .
+
+<Room_SOR42_1_U17#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U17> .
+
+<Room_SOR42_G_33#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_33> .
+
+<Room_SOR46_G_U5#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U5> .
+
+<Room_SOR42_G_18#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_18> .
+
+<Room_SOR46_G_U27#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U27> .
+
+<Room_SOR42_G_38#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_38> .
+
+<Room_MenWC#occupant> a sim:Occupant;
+  sim:workplace <Room_MenWC> .
+
+<Room_SOR46_G_U20#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U20> .
+
+<Room_SOR42_G_37#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_37> .
+
+<Room_QR035#occupant> a sim:Occupant;
+  sim:workplace <Room_QR035> .
+
+<Room_SOR42_1_U8#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U8> .
+
+<Room_SOR42_G_U20#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U20> .
+
+<Room_Yeats#occupant> a sim:Occupant;
+  sim:workplace <Room_Yeats> .
+
+<Room_SOR42_G_U9#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U9> .
+
+<Room_SOR46_G_U31A#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U31A> .
+
+<Room_StaircaseA#occupant> a sim:Occupant;
+  sim:workplace <Room_StaircaseA> .
+
+<Room_QR037#occupant> a sim:Occupant;
+  sim:workplace <Room_QR037> .
+
+<Room_MensWashroom#occupant> a sim:Occupant;
+  sim:workplace <Room_MensWashroom> .
+
+<Room_ExpoSpace#occupant> a sim:Occupant;
+  sim:workplace <Room_ExpoSpace> .
+
+<Room_SOR42_G_34#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_34> .
+
+<Room_AisleWay#occupant> a sim:Occupant;
+  sim:workplace <Room_AisleWay> .
+
+<Room_SOR46_G_U18#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U18> .
+
+<Room_SOR42_1_U22#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U22> .
+
+<Room_SOR42_G_U25#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U25> .
+
+<Room_SOR46_G_U00#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U00> .
+
+<Room_SOR42_G_U27#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U27> .
+
+<Room_SOR44_G_U12#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U12> .
+
+<Room_SOR44_1_U11#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_1_U11> .
+
+<Room_RM#occupant> a sim:Occupant;
+  sim:workplace <Room_RM> .
+
+<Room_SOR42_G_07#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_07> .
+
+<Room_StaircaseD#occupant> a sim:Occupant;
+  sim:workplace <Room_StaircaseD> .
+
+<Room_SOR42_G_U14#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U14> .
+
+<Room_SOR42_G_U10#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U10> .
+
+<Room_Breakout#occupant> a sim:Occupant;
+  sim:workplace <Room_Breakout> .
+
+<Room_Supply#occupant> a sim:Occupant;
+  sim:workplace <Room_Supply> .
+
+<Room_SOR46_G_U13#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR46_G_U13> .
+
+<Room_Shower#occupant> a sim:Occupant;
+  sim:workplace <Room_Shower> .
+
+<Room_Front#occupant> a sim:Occupant;
+  sim:workplace <Room_Front> .
+
+<Room_MenWC_Shower#occupant> a sim:Occupant;
+  sim:workplace <Room_MenWC_Shower> .
+
+<Room_ComputerRoom#occupant> a sim:Occupant;
+  sim:workplace <Room_ComputerRoom> .
+
+<Room_SOR42_G_U15#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_U15> .
+
+<Room_SOR42_1_U10#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U10> .
+
+<Room_MiddleAisle#occupant> a sim:Occupant;
+  sim:workplace <Room_MiddleAisle> .
+
+<Room_SOR42_G_04#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_04> .
+
+<Room_SOR42_1_U20#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_1_U20> .
+
+<Room_SOR44_G_U22#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_U22> .
+
+<Room_SOR42_G_01#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_01> .
+
+<Room_PrintRoom#occupant> a sim:Occupant;
+  sim:workplace <Room_PrintRoom> .
+
+<Room_18#occupant> a sim:Occupant;
+  sim:workplace <Room_18> .
+
+<Room_Water_Meter#occupant> a sim:Occupant;
+  sim:workplace <Room_Water_Meter> .
+
+<Room_SOR44_G_Entrance#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR44_G_Entrance> .
+
+<Room_CoffeeDesk#occupant> a sim:Occupant;
+  sim:workplace <Room_CoffeeDesk> .
+
+<Room_Fridge#occupant> a sim:Occupant;
+  sim:workplace <Room_Fridge> .
+
+<Room_Vesda#occupant> a sim:Occupant;
+  sim:workplace <Room_Vesda> .
+
+<Room_SOR42_G_30#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_30> .
+
+<Room_OpenPlan42119#occupant> a sim:Occupant;
+  sim:workplace <Room_OpenPlan42119> .
+
+<Room_Secpanel#occupant> a sim:Occupant;
+  sim:workplace <Room_Secpanel> .
+
+<Room_SOR42_G_31#occupant> a sim:Occupant;
+  sim:workplace <Room_SOR42_G_31> .
+
+<Room_FemaleWashroom#occupant> a sim:Occupant;
+  sim:workplace <Room_FemaleWashroom> .
+
+<Room_SmokeDetector#occupant> a sim:Occupant;
+  sim:workplace <Room_SmokeDetector> .

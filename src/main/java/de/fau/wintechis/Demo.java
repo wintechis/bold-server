@@ -3,18 +3,18 @@ package de.fau.wintechis;
 import de.fau.wintechis.sim.SimulationEngine;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
 
 public class Demo {
 
     public static void main(String[] args) throws IOException {
         SimulationEngine engine = new SimulationEngine();
 
-        engine.registerUpdate("occupancy.rq");
+        engine.registerUpdate("occupant-actions.rq");
+        engine.registerUpdate("building-reactions.rq");
         engine.registerQuery("report.rq");
 
         engine.loadData("IBM_B3.trig");
+        engine.loadData("occupants.ttl");
 
         engine.run(100, 720);
     }
