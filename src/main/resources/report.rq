@@ -13,8 +13,3 @@ SELECT ?time ?count WHERE {
         }
     }
 }
-
-#SELECT * WHERE {
-#    sim:sim sim:currentTime ?time .
-#    ?action a sim:MoveAction ; sim:agent ?occupant ; sim:fromLocation ?from ; sim:toLocation ?to .
-#}

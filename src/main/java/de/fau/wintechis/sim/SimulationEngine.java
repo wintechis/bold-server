@@ -7,7 +7,6 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.TupleQuery;
 import org.eclipse.rdf4j.query.TupleQueryResult;
-import org.eclipse.rdf4j.query.Update;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -31,7 +30,7 @@ public class SimulationEngine {
 
     private final Timer timer;
 
-    private final Map<String, Update> updates;
+    private final Map<String, org.eclipse.rdf4j.query.Update> updates;
 
     private final Map<String, TupleQuery> queries;
 
@@ -39,7 +38,7 @@ public class SimulationEngine {
 
     private final RepositoryConnection connection;
 
-    private final TemporalModel log;
+    private final UpdateHistory history;
 
     private final Server server;
 
@@ -54,9 +53,9 @@ public class SimulationEngine {
         Repository repo = new SailRepository(store);
         connection = repo.getConnection();
 
-        log = new TemporalModel();
+        history = new UpdateHistory();
         SailConnection con = ((SailRepositoryConnection) connection).getSailConnection();
-        ((NotifyingSailConnection) con).addConnectionListener(log);
+        ((NotifyingSailConnection) con).addConnectionListener(history);
 
         ValueFactory vf = Vocabulary.VALUE_FACTORY;
         Resource sim = vf.createIRI(Vocabulary.NS, "sim");
@@ -85,7 +84,7 @@ public class SimulationEngine {
     }
 
     public void registerUpdate(String name, String sparulString) throws IOException {
-        Update u = connection.prepareUpdate(sparulString);
+        org.eclipse.rdf4j.query.Update u = connection.prepareUpdate(sparulString);
         this.updates.put(name, u);
     }
 
@@ -96,7 +95,7 @@ public class SimulationEngine {
 
     public void registerQuery(String name, String sparqlString) throws IOException {
         TupleQuery q = connection.prepareTupleQuery(sparqlString);
-        //this.queries.put(name, q);
+        this.queries.put(name, q);
     }
 
     public void loadData(String filename) throws IOException {
@@ -109,7 +108,7 @@ public class SimulationEngine {
     public void run(Integer timeSlot, Integer iterations) {
         for (Map.Entry<String, TupleQuery> kv : queries.entrySet()) {
             try {
-                String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".dat");
+                String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".tsv");
                 writers.put(kv.getValue(), new FileWriter(name));
             } catch (IOException e) {
                 e.printStackTrace(); // TODO clean error handling
@@ -132,41 +131,43 @@ public class SimulationEngine {
 
         @Override
         public void run() {
-            for (TupleQuery q : queries.values()) {
-                // TODO use SPARQLResultsTSVWriter
-                TupleQueryResult res = q.evaluate();
-                List<String> vars = res.getBindingNames();
-                for (BindingSet mu : q.evaluate()) {
-                    String row = "";
+            if (count++ > maxIterations) {
+                connection.clear();
 
-                    for (String v : vars) {
-                        if (!row.isEmpty()) row += "\t";
-                        row += mu.getValue(v).stringValue();
-                    }
-                    row += "\n";
+                // replays updates and submit query at each timestamp
+                for (UpdateHistory.Update cs : history) {
+                    connection.remove(cs.getDeletions());
+                    connection.add(cs.getInsertions());
 
-                    try {
-                        writers.get(q).append(row);
-                    } catch (IOException e) {
-                        e.printStackTrace(); // TODO clean error handling
+                    for (TupleQuery q : queries.values()) {
+                        // TODO use SPARQLResultsTSVWriter
+                        TupleQueryResult res = q.evaluate();
+
+                        List<String> vars = res.getBindingNames();
+                        for (BindingSet mu : q.evaluate()) {
+                            String row = "";
+
+                            for (String v : vars) {
+                                if (!row.isEmpty()) row += "\t";
+                                row += mu.getValue(v).stringValue();
+                            }
+                            row += "\n";
+
+                            try {
+                                writers.get(q).append(row);
+                            } catch (IOException e) {
+                                e.printStackTrace(); // TODO clean error handling
+                            }
+                        }
                     }
                 }
-            }
 
-            if (count++ > maxIterations) {
                 for (FileWriter w : writers.values()) {
                     try {
                         w.close();
                     } catch (IOException e) {
                         e.printStackTrace(); // TODO clean error handling
                     }
-                }
-
-                try {
-                    FileWriter writer = new FileWriter("log.ttl");
-                    Rio.write(log, writer, RDFFormat.TURTLE);
-                } catch (IOException e) {
-                    e.printStackTrace(); // TODO clean error handling
                 }
 
                 timer.cancel();
@@ -177,9 +178,9 @@ public class SimulationEngine {
                     e.printStackTrace(); // TODO clean error handling
                 }
             } else {
-                log.timeIncremented();
+                history.timeIncremented();
 
-                for (Update u : updates.values()) {
+                for (org.eclipse.rdf4j.query.Update u : updates.values()) {
                     u.execute();
                 }
             }
