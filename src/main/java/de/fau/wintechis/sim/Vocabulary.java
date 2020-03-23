@@ -15,6 +15,12 @@ public class Vocabulary {
 
     public static final IRI CURRENT_TIME = VALUE_FACTORY.createIRI(NS + "currentTime");
 
+    public static final IRI INSERTED = VALUE_FACTORY.createIRI(NS + "inserted");
+
+    public static final IRI DELETED = VALUE_FACTORY.createIRI(NS + "deleted");
+
+    public static final IRI AT_TIME = VALUE_FACTORY.createIRI(NS + "atTime");
+
     public static void registerFunctions() {
         FunctionRegistry.getInstance().add(new ComputeExponentialCDFFunction());
         FunctionRegistry.getInstance().add(new ComputeNormalCDFFunction());

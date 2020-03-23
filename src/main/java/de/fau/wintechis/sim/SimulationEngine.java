@@ -1,6 +1,5 @@
 package de.fau.wintechis.sim;
 
-import de.fau.wintechis.Demo;
 import de.fau.wintechis.gsp.GraphStoreHandler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.rdf4j.model.Resource;
@@ -12,8 +11,11 @@ import org.eclipse.rdf4j.query.Update;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.sail.NotifyingSailConnection;
+import org.eclipse.rdf4j.sail.SailConnection;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import java.io.*;
@@ -37,6 +39,8 @@ public class SimulationEngine {
 
     private final RepositoryConnection connection;
 
+    private final TemporalModel log;
+
     private final Server server;
 
     public SimulationEngine() {
@@ -46,8 +50,13 @@ public class SimulationEngine {
         this.queries = new HashMap<>();
         this.writers = new HashMap<>();
 
-        Repository repo = new SailRepository(new MemoryStore());
+        MemoryStore store = new MemoryStore();
+        Repository repo = new SailRepository(store);
         connection = repo.getConnection();
+
+        log = new TemporalModel();
+        SailConnection con = ((SailRepositoryConnection) connection).getSailConnection();
+        ((NotifyingSailConnection) con).addConnectionListener(log);
 
         ValueFactory vf = Vocabulary.VALUE_FACTORY;
         Resource sim = vf.createIRI(Vocabulary.NS, "sim");
@@ -87,7 +96,7 @@ public class SimulationEngine {
 
     public void registerQuery(String name, String sparqlString) throws IOException {
         TupleQuery q = connection.prepareTupleQuery(sparqlString);
-        this.queries.put(name, q);
+        //this.queries.put(name, q);
     }
 
     public void loadData(String filename) throws IOException {
@@ -124,6 +133,7 @@ public class SimulationEngine {
         @Override
         public void run() {
             for (TupleQuery q : queries.values()) {
+                // TODO use SPARQLResultsTSVWriter
                 TupleQueryResult res = q.evaluate();
                 List<String> vars = res.getBindingNames();
                 for (BindingSet mu : q.evaluate()) {
@@ -152,6 +162,13 @@ public class SimulationEngine {
                     }
                 }
 
+                try {
+                    FileWriter writer = new FileWriter("log.ttl");
+                    Rio.write(log, writer, RDFFormat.TURTLE);
+                } catch (IOException e) {
+                    e.printStackTrace(); // TODO clean error handling
+                }
+
                 timer.cancel();
                 connection.close();
                 try {
@@ -160,6 +177,8 @@ public class SimulationEngine {
                     e.printStackTrace(); // TODO clean error handling
                 }
             } else {
+                log.timeIncremented();
+
                 for (Update u : updates.values()) {
                     u.execute();
                 }
