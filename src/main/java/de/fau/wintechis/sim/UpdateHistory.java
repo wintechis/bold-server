@@ -22,6 +22,7 @@ class UpdateHistory extends Stack<UpdateHistory.Update> implements SailConnectio
         public Set<Statement> getDeletions() {
             return deletions;
         }
+
     }
 
     public UpdateHistory() {
@@ -31,6 +32,8 @@ class UpdateHistory extends Stack<UpdateHistory.Update> implements SailConnectio
     public void timeIncremented() {
         this.add(new Update());
     }
+
+    // TODO ignore statements that were first inserted and then removed in the same time slot
 
     @Override
     public void statementAdded(Statement st) {

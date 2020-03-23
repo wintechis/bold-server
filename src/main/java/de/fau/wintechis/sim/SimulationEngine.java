@@ -6,7 +6,6 @@ import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.TupleQuery;
-import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -34,7 +33,7 @@ public class SimulationEngine {
 
     private final Map<String, TupleQuery> queries;
 
-    private final Map<TupleQuery, FileWriter> writers;
+    private final Map<TupleQuery, Writer> writers;
 
     private final RepositoryConnection connection;
 
@@ -54,8 +53,7 @@ public class SimulationEngine {
         connection = repo.getConnection();
 
         history = new UpdateHistory();
-        SailConnection con = ((SailRepositoryConnection) connection).getSailConnection();
-        ((NotifyingSailConnection) con).addConnectionListener(history);
+        getNotifyingSailConnection(connection).addConnectionListener(history);
 
         ValueFactory vf = Vocabulary.VALUE_FACTORY;
         Resource sim = vf.createIRI(Vocabulary.NS, "sim");
@@ -109,7 +107,7 @@ public class SimulationEngine {
         for (Map.Entry<String, TupleQuery> kv : queries.entrySet()) {
             try {
                 String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".tsv");
-                writers.put(kv.getValue(), new FileWriter(name));
+                writers.put(kv.getValue(),  new FileWriter(name));
             } catch (IOException e) {
                 e.printStackTrace(); // TODO clean error handling
             }
@@ -132,6 +130,8 @@ public class SimulationEngine {
         @Override
         public void run() {
             if (count++ > maxIterations) {
+                getNotifyingSailConnection(connection).removeConnectionListener(history);
+
                 connection.clear();
 
                 // replays updates and submit query at each timestamp
@@ -140,12 +140,15 @@ public class SimulationEngine {
                     connection.add(cs.getInsertions());
 
                     for (TupleQuery q : queries.values()) {
-                        // TODO use SPARQLResultsTSVWriter
-                        TupleQueryResult res = q.evaluate();
-
-                        List<String> vars = res.getBindingNames();
+                        // TODO put this code in a TupleQueryResultHandler
+                        // vars are ordered for deterministic rendering
+                        Set<String> vars = new TreeSet<>();
                         for (BindingSet mu : q.evaluate()) {
                             String row = "";
+
+                            if (vars.isEmpty()) {
+                                vars.addAll(mu.getBindingNames());
+                            }
 
                             for (String v : vars) {
                                 if (!row.isEmpty()) row += "\t";
@@ -162,7 +165,7 @@ public class SimulationEngine {
                     }
                 }
 
-                for (FileWriter w : writers.values()) {
+                for (Writer w : writers.values()) {
                     try {
                         w.close();
                     } catch (IOException e) {
@@ -185,6 +188,11 @@ public class SimulationEngine {
                 }
             }
         }
+    }
+
+    private NotifyingSailConnection getNotifyingSailConnection(RepositoryConnection con) {
+        SailConnection sailCon = ((SailRepositoryConnection) con).getSailConnection();
+        return (NotifyingSailConnection) sailCon;
     }
 
     /**

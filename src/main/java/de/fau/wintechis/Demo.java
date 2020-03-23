@@ -11,8 +11,8 @@ public class Demo {
 
         engine.registerUpdate("occupant-actions.rq");
         engine.registerUpdate("building-reactions.rq");
-        //engine.registerQuery("ts1.rq");
-        engine.registerQuery("report.rq");
+        engine.registerQuery("ts1.rq");
+        //engine.registerQuery("report.rq");
 
         engine.loadData("IBM_B3.trig");
         engine.loadData("occupants.ttl");
