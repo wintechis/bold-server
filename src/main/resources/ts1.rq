@@ -9,8 +9,7 @@ SELECT ?time ?count WHERE {
         SELECT (count(*) as ?count) WHERE {
             ?switch a brick:Lighting .
             ?switch ssn:hasProperty ?p .
-            ?p rdf:value ?state .
-            FILTER (?state)
+            ?p rdf:value "on" .
         }
     }
 }

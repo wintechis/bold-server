@@ -33,9 +33,27 @@ DELETE {
         ?toSensor a brick:Occupancy_Sensor ; sosa:observes ?toOccupancy .
         ?toOccupancy rdf:value ?toState .
     }
-}
+};
 
 # switch status gets updated (light, appliance)
+
+DELETE {
+    GRAPH ?lighting { ?lighting rdf:value ?oldState }
+} INSERT {
+    GRAPH ?lighting { ?lighting rdf:value ?state }
+} WHERE {
+    sim:sim sim:currentTime ?time .
+
+    ?action a sim:SwitchAction ;
+            sim:agent ?occupant ;
+            sim:object ?switch ;
+            sim:location ?loc ;
+            sim:atTime ?time ;
+            sim:result ?state .
+
+    ?switch ssn:hasProperty ?lighting .
+    ?lighting rdf:value ?oldState .
+}
 
 # illuminance gets updated
 

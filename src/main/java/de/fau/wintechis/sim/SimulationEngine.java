@@ -1,19 +1,19 @@
 package de.fau.wintechis.sim;
 
-import de.fau.wintechis.Demo;
 import de.fau.wintechis.gsp.GraphStoreHandler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.TupleQuery;
-import org.eclipse.rdf4j.query.TupleQueryResult;
-import org.eclipse.rdf4j.query.Update;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.sail.NotifyingSailConnection;
+import org.eclipse.rdf4j.sail.SailConnection;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import java.io.*;
@@ -29,13 +29,15 @@ public class SimulationEngine {
 
     private final Timer timer;
 
-    private final Map<String, Update> updates;
+    private final Map<String, org.eclipse.rdf4j.query.Update> updates;
 
     private final Map<String, TupleQuery> queries;
 
-    private final Map<TupleQuery, FileWriter> writers;
+    private final Map<TupleQuery, Writer> writers;
 
     private final RepositoryConnection connection;
+
+    private final UpdateHistory history;
 
     private final Server server;
 
@@ -46,8 +48,12 @@ public class SimulationEngine {
         this.queries = new HashMap<>();
         this.writers = new HashMap<>();
 
-        Repository repo = new SailRepository(new MemoryStore());
+        MemoryStore store = new MemoryStore();
+        Repository repo = new SailRepository(store);
         connection = repo.getConnection();
+
+        history = new UpdateHistory();
+        getNotifyingSailConnection(connection).addConnectionListener(history);
 
         ValueFactory vf = Vocabulary.VALUE_FACTORY;
         Resource sim = vf.createIRI(Vocabulary.NS, "sim");
@@ -76,7 +82,7 @@ public class SimulationEngine {
     }
 
     public void registerUpdate(String name, String sparulString) throws IOException {
-        Update u = connection.prepareUpdate(sparulString);
+        org.eclipse.rdf4j.query.Update u = connection.prepareUpdate(sparulString);
         this.updates.put(name, u);
     }
 
@@ -100,8 +106,8 @@ public class SimulationEngine {
     public void run(Integer timeSlot, Integer iterations) {
         for (Map.Entry<String, TupleQuery> kv : queries.entrySet()) {
             try {
-                String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".dat");
-                writers.put(kv.getValue(), new FileWriter(name));
+                String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".tsv");
+                writers.put(kv.getValue(),  new FileWriter(name));
             } catch (IOException e) {
                 e.printStackTrace(); // TODO clean error handling
             }
@@ -123,28 +129,43 @@ public class SimulationEngine {
 
         @Override
         public void run() {
-            for (TupleQuery q : queries.values()) {
-                TupleQueryResult res = q.evaluate();
-                List<String> vars = res.getBindingNames();
-                for (BindingSet mu : q.evaluate()) {
-                    String row = "";
+            if (count++ > maxIterations) {
+                getNotifyingSailConnection(connection).removeConnectionListener(history);
 
-                    for (String v : vars) {
-                        if (!row.isEmpty()) row += "\t";
-                        row += mu.getValue(v).stringValue();
-                    }
-                    row += "\n";
+                connection.clear();
 
-                    try {
-                        writers.get(q).append(row);
-                    } catch (IOException e) {
-                        e.printStackTrace(); // TODO clean error handling
+                // replays updates and submit query at each timestamp
+                for (UpdateHistory.Update cs : history) {
+                    connection.remove(cs.getDeletions());
+                    connection.add(cs.getInsertions());
+
+                    for (TupleQuery q : queries.values()) {
+                        // TODO put this code in a TupleQueryResultHandler
+                        // vars are ordered for deterministic rendering
+                        Set<String> vars = new TreeSet<>();
+                        for (BindingSet mu : q.evaluate()) {
+                            String row = "";
+
+                            if (vars.isEmpty()) {
+                                vars.addAll(mu.getBindingNames());
+                            }
+
+                            for (String v : vars) {
+                                if (!row.isEmpty()) row += "\t";
+                                row += mu.getValue(v).stringValue();
+                            }
+                            row += "\n";
+
+                            try {
+                                writers.get(q).append(row);
+                            } catch (IOException e) {
+                                e.printStackTrace(); // TODO clean error handling
+                            }
+                        }
                     }
                 }
-            }
 
-            if (count++ > maxIterations) {
-                for (FileWriter w : writers.values()) {
+                for (Writer w : writers.values()) {
                     try {
                         w.close();
                     } catch (IOException e) {
@@ -160,11 +181,18 @@ public class SimulationEngine {
                     e.printStackTrace(); // TODO clean error handling
                 }
             } else {
-                for (Update u : updates.values()) {
+                history.timeIncremented();
+
+                for (org.eclipse.rdf4j.query.Update u : updates.values()) {
                     u.execute();
                 }
             }
         }
+    }
+
+    private NotifyingSailConnection getNotifyingSailConnection(RepositoryConnection con) {
+        SailConnection sailCon = ((SailRepositoryConnection) con).getSailConnection();
+        return (NotifyingSailConnection) sailCon;
     }
 
     /**
