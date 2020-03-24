@@ -16,6 +16,7 @@ DELETE {
 } WHERE {
     sim:sim sim:currentTime ?time .
 
+    # TODO delete action when done?
     ?action a sim:MoveAction ;
             sim:agent ?occupant ;
             sim:fromLocation ?from ;
@@ -44,6 +45,7 @@ DELETE {
 } WHERE {
     sim:sim sim:currentTime ?time .
 
+    # TODO delete action when done?
     ?action a sim:SwitchAction ;
             sim:agent ?occupant ;
             sim:object ?switch ;

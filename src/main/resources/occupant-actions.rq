@@ -21,66 +21,65 @@ DELETE {
             sim:atTime ?time .
 } WHERE {
     # case 1: occupant has not arrived yet -> ~50% chance to arrive after 1h
-    # case 2: occupant is at their desk, soon to go for lunch -> ~50% chance to leave after 10min
-    # case 3: occupant is coming back from lunch break -> ~1h break in average (+/- 10min)
-    # case 4: occupant is leaving the office -> ~50% chance to leave after 2h
+    # case 2: occupant is at their desk, soon to go for lunch -> ~50% chance to leave after 30min
+    # case 3: occupant is coming back from lunch break -> ~50% chance to come back after ~30min
+    # case 4: occupant is leaving the office -> ~50% chance to leave after 4h
+    # note: times are in minute (simulation start at 8am)
+    # TODO probabilities are crap (binomial distribution -> p = 0.5 after n draws if p = ? at each draw)
     {
-        sim:sim sim:currentTime ?time .
-        BIND (2 * 60 AS ?8am)
-        BIND (6 * 60 AS ?12pm)
-        FILTER (?time >= ?8am && ?time < ?12pm && rand() <= sim:cdf-exp(1 / 60, ?time - ?8am))
-
         ?occupant a sim:Occupant .
+        FILTER NOT EXISTS { ?action a sim:MoveAction ; sim:agent ?occupant . }
+
+        sim:sim sim:currentTime ?time .
+        BIND (0 AS ?8am)
+        BIND (4 * 60 AS ?12pm)
+        FILTER (?time >= ?8am && ?time < ?12pm && sim:rand(?occupant) <= 1 / 60)
 
         BIND (iri(concat(str(?occupant), "-move")) AS ?action)
-        FILTER NOT EXISTS { ?action a sim:MoveAction }
         ?occupant sim:workplace ?to .
         BIND (sim:away AS ?oldTo)
     } UNION {
-        sim:sim sim:currentTime ?time .
-        BIND (6 * 60 AS ?12pm)
-        BIND (8 * 60 AS ?2pm)
-        FILTER (?time >= ?12pm && ?time < ?2pm && rand() <= sim:cdf-exp(1 / 10, ?time - ?12pm))
-
-        ?occupant a sim:Occupant .
-
-        BIND (iri(concat(str(?occupant), "-move")) AS ?action)
-        ?occupant sim:workplace ?oldTo .
-        #FILTER (rand() < 0.45) # 45% chance for the occupant to take a lunch break
-        BIND (sim:cafeteria AS ?to)
-    } UNION {
-        sim:sim sim:currentTime ?time .
-        BIND (6 * 60 AS ?12pm)
-        BIND (8 * 60 AS ?2pm)
-        FILTER (?time >= ?12pm && ?time < ?2pm && rand() <= sim:cdf-normal(60, 10, ?time - ?12pm)) # FIXME ?oldTime
-
-        ?occupant a sim:Occupant .
-
-        BIND (iri(concat(str(?occupant), "-move")) AS ?action)
-        BIND (sim:cafeteria AS ?oldTo)
-        ?occupant sim:workplace ?to .
-    } UNION {
-        sim:sim sim:currentTime ?time .
-        BIND (8 * 60 AS ?2pm)
-        BIND (12 * 60 AS ?6pm)
-        FILTER (?time >= ?2pm && ?time < ?6pm && rand() > sim:cdf-exp(1 / 120, ?time - ?2pm))
-
-        ?occupant a sim:Occupant .
-
-        BIND (iri(concat(str(?occupant), "-move")) AS ?action)
-        ?occupant sim:workplace ?oldTo .
-        BIND (sim:away AS ?to)
-    }
-    # TODO get rid of redundancy in UNION components (variable scoping problem)?
-    # note: times are in minute (for convenience, simulation start at 6am)
-
-    OPTIONAL {
         ?action a sim:MoveAction ;
                    sim:agent ?occupant ;
                    sim:fromLocation ?oldFrom ;
                    sim:toLocation ?oldTo ;
                    sim:atTime ?oldTime .
+        FILTER (?oldFrom = sim:away)
+        ?occupant sim:workplace ?oldTo .
+
+        sim:sim sim:currentTime ?time .
+        BIND (4 * 60 AS ?12pm)
+        BIND (6 * 60 AS ?2pm)
+        FILTER (?time >= ?12pm && ?time < ?2pm && sim:rand(?occupant) <= 1 / 30)
+
+        BIND (sim:cafeteria AS ?to)
+    } UNION {
+        ?action a sim:MoveAction ;
+                   sim:agent ?occupant ;
+                   sim:fromLocation ?oldFrom ;
+                   sim:toLocation ?oldTo ;
+                   sim:atTime ?oldTime .
+        FILTER (?oldTo = sim:cafeteria)
+
+        sim:sim sim:currentTime ?time .
+        FILTER (sim:rand(?occupant) <= 1 / 30)
+
+        ?occupant sim:workplace ?to .
+    } UNION {
+        ?action a sim:MoveAction ;
+                   sim:agent ?occupant ;
+                   sim:fromLocation ?oldFrom ;
+                   sim:toLocation ?oldTo ;
+                   sim:atTime ?oldTime .
+
+        sim:sim sim:currentTime ?time .
+        BIND (6 * 60 AS ?2pm)
+        BIND (10 * 60 AS ?6pm)
+        FILTER (?time >= ?2pm && ?time < ?6pm && sim:rand(?occupant) <= 1 / 240)
+
+        BIND (sim:away AS ?to)
     }
+    # TODO get rid of redundancy in UNION components (variable scoping problem)?
 };
 
 # occupant randomly switches on/off light in old/new location

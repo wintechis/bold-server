@@ -2,6 +2,7 @@ package de.fau.wintechis.sim;
 
 import de.fau.wintechis.sparql.ComputeExponentialCDFFunction;
 import de.fau.wintechis.sparql.ComputeNormalCDFFunction;
+import de.fau.wintechis.sparql.RandomFunction;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -24,6 +25,7 @@ public class Vocabulary {
     public static void registerFunctions() {
         FunctionRegistry.getInstance().add(new ComputeExponentialCDFFunction());
         FunctionRegistry.getInstance().add(new ComputeNormalCDFFunction());
+        FunctionRegistry.getInstance().add(new RandomFunction());
     }
 
 }
