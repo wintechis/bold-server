@@ -20,4 +20,4 @@ dependencies {
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.12.RC2'
 }
 
-mainClassName = 'de.fau.wintechis.Demo'
+mainClassName = 'de.fau.wintechis.Configurator'

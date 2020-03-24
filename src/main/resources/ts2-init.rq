@@ -1,0 +1,18 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ssn: <http://www.w3.org/ns/ssn/>
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX brick: <http://buildsys.org/ontologies/Brick#>
+PREFIX bf: <http://buildsys.org/ontologies/BrickFrame#>
+PREFIX sim: <http://ti.rw.fau.de/sim#>
+
+DELETE {
+    GRAPH ?lighting { ?lighting rdf:value ?oldState }
+} INSERT {
+    GRAPH ?lighting { ?lighting rdf:value ?state }
+    ?lighting sim:initialValue ?state
+} WHERE {
+    ?switch a brick:Lighting ;
+            ssn:hasProperty ?lighting .
+    ?lighting rdf:value ?oldState .
+    BIND (if(sim:rand(?lighting) < 0.5, "on", "off") AS ?state)
+}

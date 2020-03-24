@@ -57,7 +57,7 @@ DELETE {
     ?lighting rdf:value ?oldState .
 }
 
-# illuminance gets updated
+# illuminance gets updated (by lighting systems and sunlight)
 
 # electric consumption gets updated
 

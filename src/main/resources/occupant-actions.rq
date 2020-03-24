@@ -50,7 +50,7 @@ DELETE {
         sim:sim sim:currentTime ?time .
         BIND (4 * 60 AS ?12pm)
         BIND (6 * 60 AS ?2pm)
-        FILTER (?time >= ?12pm && ?time < ?2pm && sim:rand(?occupant) <= 1 / 30)
+        FILTER (?time >= ?12pm && ?time < ?2pm && sim:rand(?occupant) <= 1 / 60)
 
         BIND (sim:cafeteria AS ?to)
     } UNION {
@@ -73,9 +73,8 @@ DELETE {
                    sim:atTime ?oldTime .
 
         sim:sim sim:currentTime ?time .
-        BIND (6 * 60 AS ?2pm)
-        BIND (10 * 60 AS ?6pm)
-        FILTER (?time >= ?2pm && ?time < ?6pm && sim:rand(?occupant) <= 1 / 240)
+        BIND (8 * 60 AS ?4pm)
+        FILTER (?time >= ?4pm && sim:rand(?occupant) <= 1 / 120)
 
         BIND (sim:away AS ?to)
     }

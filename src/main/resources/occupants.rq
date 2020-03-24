@@ -1,7 +1,7 @@
 PREFIX brick: <http://buildsys.org/ontologies/Brick#>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
 
-CONSTRUCT {
+INSERT {
     ?occupant a sim:Occupant ;
               sim:workplace ?room .
 } WHERE {
