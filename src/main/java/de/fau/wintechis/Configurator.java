@@ -1,31 +1,53 @@
 package de.fau.wintechis;
 
+import de.fau.wintechis.io.FileUtils;
 import de.fau.wintechis.sim.SimulationEngine;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Properties;
 
 public class Configurator {
 
+    private final static String SERVER_HTTP_PORT_KEY = "boldng.server.httpPort";
+
+    private final static String SERVER_HTTP_PORT_DEFAULT = "8080";
+
+    private final static String INIT_DATASET_KEY = "boldng.init.dataset";
+
+    private final static String INIT_UPDATE_KEY = "boldng.init.update";
+
+    private final static String RUNTIME_UPDATE_KEY = "boldng.runtime.update";
+
+    private final static String RUNTIME_QUERY_KEY = "boldng.runtime.query";
+
     public static void main(String[] args) throws IOException {
-        SimulationEngine engine = new SimulationEngine();
+        // TODO provide as CLI argument
+        String propertiesFilename = "ts1.properties";
+        //String propertiesFilename = "ts2.properties";
+        //String propertiesFilename = "sim.properties";
 
-        // pre-configured building data
-        engine.loadData("IBM_B3.trig");
-        // TODO configure raw IBM Turtle data with engine.executeUpdate()?
+        Properties config = new Properties();
+        config.load(new FileInputStream(("sim.properties")));
 
-        // simple task 1: turn all lights off
-//        engine.executeUpdate("ts1-init.rq");
-//        engine.registerQuery("ts1.rq");
+        int port = Integer.parseInt(config.getProperty(SERVER_HTTP_PORT_KEY, SERVER_HTTP_PORT_DEFAULT));
+        SimulationEngine engine = new SimulationEngine(port);
 
-        // simple task 2: toggle all lights
-        engine.executeUpdate("ts2-init.rq");
-        engine.registerQuery("ts2.rq");
+        for (String f : FileUtils.listFiles(config.getProperty(INIT_DATASET_KEY))) {
+            engine.loadData(f);
+        }
 
-        // general simulation of occupants over one day
-//        engine.executeUpdate("occupants.ttl");
-//        engine.registerUpdate("occupant-actions.rq");
-//        engine.registerUpdate("building-reactions.rq");
-//        engine.registerQuery("occupancy.rq");
+        for (String f : FileUtils.listFiles(config.getProperty(INIT_UPDATE_KEY))) {
+            engine.executeUpdate(f);
+        }
+
+        for (String f : FileUtils.listFiles(config.getProperty(RUNTIME_UPDATE_KEY))) {
+            engine.registerUpdate(f);
+        }
+
+        for (String f : FileUtils.listFiles(config.getProperty(RUNTIME_QUERY_KEY))) {
+            engine.registerQuery(f);
+        }
 
         // 720 iterations = 12h (~ one day, starting from 8am)
 //        engine.run(100, 720);

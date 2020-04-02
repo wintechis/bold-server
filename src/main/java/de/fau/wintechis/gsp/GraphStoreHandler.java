@@ -6,7 +6,6 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
-import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFHandler;
 import org.eclipse.rdf4j.rio.RDFParseException;
@@ -20,6 +19,8 @@ import java.net.URI;
 /**
  * Basic implementation of the SPARQL Graph Store protocol, giving
  * RESTful access to named graphs in an RDF dataset.
+ *
+ * TODO ASK queries (~ RDF shapes) to control resource handler I/O
  */
 public class GraphStoreHandler extends AbstractHandler {
 

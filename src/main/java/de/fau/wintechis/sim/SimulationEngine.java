@@ -43,7 +43,7 @@ public class SimulationEngine {
 
     private final Server server;
 
-    public SimulationEngine() {
+    public SimulationEngine(int port) {
         this.timer = new Timer();
 
         this.updates = new HashMap<>();
@@ -66,7 +66,7 @@ public class SimulationEngine {
         // time must be updated first, before any other resource
         this.updates.put("sim.rq", connection.prepareUpdate(UPDATE_TIME));
 
-        server = new Server(8080); // TODO as env or class constructor argument
+        server = new Server(port);
         server.setHandler(new GraphStoreHandler(repo));
 
         try {

@@ -4,8 +4,27 @@ import de.fau.wintechis.sim.SimulationEngine;
 
 import java.io.*;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 public class FileUtils {
+
+    /**
+     * Returns a list of file names matching the given pattern.
+     *
+     * @param pattern path that may include wildcards (*)
+     * @return
+     */
+    public static Set<String> listFiles(String pattern) {
+        String regex = pattern.replaceAll("\\*", ".+");
+        if (pattern.startsWith("/")) {
+            // absolute path
+            return listFilesRec(regex, new File("/"));
+        } else {
+            // relative path
+            return listFilesRec(regex, new File("."));
+        }
+    }
 
     /**
      * First tries to open the file from the file system. If it does not exist, interpret it as a resource file.
@@ -35,6 +54,36 @@ public class FileUtils {
         while ((buf = is.read()) > -1) w.write(buf);
 
         return w.toString();
+    }
+
+    private static Set<String> listFilesRec(String regex, File root) {
+        Set<String> matches = new HashSet<>();
+
+        if (root.exists()) {
+            int i = regex.indexOf("/");
+
+            String head, tail;
+            if (i >= 0) {
+                head = regex.substring(0, i);
+                tail = regex.substring(i + 1);
+            } else {
+                head = regex;
+                tail = "";
+            }
+
+            for (String match : root.list((f, name) -> name.matches(head))) {
+                if (tail.isEmpty()) {
+                    matches.add(match);
+                } else {
+                    // TODO wildcard should include subfolders?
+                    for (String tailMatch : listFilesRec(tail, new File(match))) {
+                        matches.add(match + "/" + tailMatch);
+                    }
+                }
+            }
+        }
+
+        return matches;
     }
 
 }
