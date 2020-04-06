@@ -15,6 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Basic implementation of the SPARQL Graph Store protocol, giving
@@ -28,12 +30,18 @@ public class GraphStoreHandler extends AbstractHandler {
 
     private final RepositoryConnection connection;
 
+    private final Set<GraphStoreListener> listeners = new HashSet<>();
+
     public GraphStoreHandler(Repository repo) {
         connection = repo.getConnection();
     }
 
-    public RepositoryConnection getRepositoryConnection() {
-        return connection;
+    public void addGraphStoreListener(GraphStoreListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeGraphStoreListener(GraphStoreListener listener) {
+        listeners.remove(listener);
     }
 
     @Override
@@ -55,6 +63,10 @@ public class GraphStoreHandler extends AbstractHandler {
                         RDFHandler writer = Rio.createWriter(accept, response.getOutputStream());
                         connection.export(writer, graphName);
                         response.setStatus(HttpServletResponse.SC_OK);
+
+                        for (GraphStoreListener l : listeners) {
+                            l.graphRetrieved(graphName);
+                        }
                     } else {
                         response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     }
@@ -65,17 +77,29 @@ public class GraphStoreHandler extends AbstractHandler {
                     connection.clear(graphName);
                     connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, graphName);
                     response.setStatus(created ? HttpServletResponse.SC_CREATED : HttpServletResponse.SC_NO_CONTENT);
+
+                    for (GraphStoreListener l : listeners) {
+                        l.graphUpdated(graphName);
+                    }
                     break;
 
                 case "POST":
                     connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, graphName);
                     response.setStatus(created ? HttpServletResponse.SC_CREATED : HttpServletResponse.SC_NO_CONTENT);
+
+                    for (GraphStoreListener l : listeners) {
+                        l.graphExtended(graphName);
+                    }
                     break;
 
                 case "DELETE":
                     if (!created) {
                         connection.clear(graphName);
                         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+
+                        for (GraphStoreListener l : listeners) {
+                            l.graphDeleted(graphName);
+                        }
                     } else {
                         response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     }

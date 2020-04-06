@@ -1,0 +1,5 @@
+@prefix : <http://ti.rw.fau.de/sim#>  .
+
+[] :timeslotDuration 100 ;
+   #:iterations 10 .
+   :iterations 720 .

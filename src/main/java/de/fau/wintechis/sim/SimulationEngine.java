@@ -1,13 +1,15 @@
 package de.fau.wintechis.sim;
 
 import de.fau.wintechis.gsp.GraphStoreHandler;
+import de.fau.wintechis.gsp.GraphStoreListener;
 import de.fau.wintechis.io.FileUtils;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -16,7 +18,6 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.NotifyingSailConnection;
 import org.eclipse.rdf4j.sail.SailConnection;
-import org.eclipse.rdf4j.sail.SailConnectionListener;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import java.io.FileWriter;
@@ -69,13 +70,14 @@ public class SimulationEngine {
         this.updates.put("sim.rq", connection.prepareUpdate(UPDATE_TIME));
 
         GraphStoreHandler handler = new GraphStoreHandler(repo);
-        getNotifyingSailConnection(handler.getRepositoryConnection()).addConnectionListener(new SimulationRunner());
-
         server = new Server(port);
         server.setHandler(handler);
 
         try {
             server.start();
+
+            SimulationRunner runner = new SimulationRunner();
+            handler.addGraphStoreListener(runner);
         } catch (Exception e) {
             e.printStackTrace(); // TODO clean error handling
         }
@@ -115,33 +117,53 @@ public class SimulationEngine {
         connection.prepareUpdate(sparulString).execute();
     }
 
-    private class SimulationRunner implements SailConnectionListener {
+    private class SimulationRunner implements GraphStoreListener {
 
-        //private final IRI sim = Vocabulary.VALUE_FACTORY.createIRI(server.getURI() + "sim");
+        private static final String QUERY_RUNNER_CONFIG =
+            "PREFIX : <" + Vocabulary.NS + ">\n" +
+            "SELECT ?slot ?it WHERE {\n" +
+            "?sim :timeslotDuration ?slot ; :iterations ?it }";
 
-        private Integer timeSlotDuration = null;
+        private final IRI sim;
 
-        private Integer numberOfIterations = null;
+        private final TupleQuery query;
+
+        public SimulationRunner() {
+            sim = Vocabulary.VALUE_FACTORY.createIRI(server.getURI().resolve("sim").toString());
+            query = connection.prepareTupleQuery(QUERY_RUNNER_CONFIG);
+        }
 
         @Override
-        public void statementAdded(Statement st) {
-            if (st.getSubject().equals(Vocabulary.SIM)) {
-                if (st.getPredicate().equals(Vocabulary.TIMESLOT_DURATION)) {
-                    timeSlotDuration = Integer.parseInt(st.getObject().stringValue());
-                } else if (st.getPredicate().equals(Vocabulary.ITERATIONS)) {
-                    numberOfIterations = Integer.parseInt(st.getObject().stringValue());
-                }
-            }
+        public void graphRetrieved(IRI graphName) {
+            // does nothing
+        }
 
-            if (timeSlotDuration != null && numberOfIterations != null) {
-                run(timeSlotDuration, numberOfIterations);
-                // TODO prepare runner for reset
+        @Override
+        public void graphUpdated(IRI graphName) {
+            if (graphName.equals(sim)) {
+                TupleQueryResult res = query.evaluate();
+
+                if (res.hasNext()) {
+                    BindingSet mu = res.next();
+
+                    Integer timeSlotDuration = Integer.parseInt(mu.getValue("slot").stringValue());
+                    Integer numberOfIterations = Integer.parseInt(mu.getValue("it").stringValue());
+
+                    run(timeSlotDuration, numberOfIterations);
+                }
             }
         }
 
         @Override
-        public void statementRemoved(Statement st) {
-            // TODO reset runner
+        public void graphExtended(IRI graphName) {
+            graphUpdated(graphName);
+        }
+
+        @Override
+        public void graphDeleted(IRI graphName) {
+            if (graphName.equals(sim)) {
+                reset();
+            }
         }
 
         private void run(Integer timeSlot, Integer iterations) {
@@ -156,6 +178,10 @@ public class SimulationEngine {
 
             TimerTask task = new IterationTask(iterations);
             timer.scheduleAtFixedRate(task, 0, timeSlot);
+        }
+
+        private void reset() {
+            // TODO
         }
 
     }
