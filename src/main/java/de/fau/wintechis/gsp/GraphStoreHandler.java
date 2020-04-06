@@ -32,6 +32,10 @@ public class GraphStoreHandler extends AbstractHandler {
         connection = repo.getConnection();
     }
 
+    public RepositoryConnection getRepositoryConnection() {
+        return connection;
+    }
+
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
         URI base = getServer().getURI();

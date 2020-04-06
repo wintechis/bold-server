@@ -14,13 +14,13 @@ public class Vocabulary {
 
     public static final String NS = "http://ti.rw.fau.de/sim#";
 
-    public static final IRI CURRENT_TIME = VALUE_FACTORY.createIRI(NS + "currentTime");
+    public static final IRI SIM = VALUE_FACTORY.createIRI(NS, "sim");
 
-    public static final IRI INSERTED = VALUE_FACTORY.createIRI(NS + "inserted");
+    public static final IRI TIMESLOT_DURATION = VALUE_FACTORY.createIRI(NS, "timeslotDuration");
 
-    public static final IRI DELETED = VALUE_FACTORY.createIRI(NS + "deleted");
+    public static final IRI ITERATIONS = VALUE_FACTORY.createIRI(NS, "iterations");
 
-    public static final IRI AT_TIME = VALUE_FACTORY.createIRI(NS + "atTime");
+    public static final IRI CURRENT_TIME = VALUE_FACTORY.createIRI(NS, "currentTime");
 
     public static void registerFunctions() {
         FunctionRegistry.getInstance().add(new ComputeExponentialCDFFunction());

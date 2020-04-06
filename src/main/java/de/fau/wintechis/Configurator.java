@@ -48,12 +48,6 @@ public class Configurator {
         for (String f : FileUtils.listFiles(config.getProperty(RUNTIME_QUERY_KEY))) {
             engine.registerQuery(f);
         }
-
-        // 720 iterations = 12h (~ one day, starting from 8am)
-//        engine.run(100, 720);
-
-        // TODO change to higher number of iterations (10 set only for quick testing)
-        engine.run(100, 10);
     }
 
 }

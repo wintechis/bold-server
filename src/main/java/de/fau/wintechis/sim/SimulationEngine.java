@@ -4,6 +4,7 @@ import de.fau.wintechis.gsp.GraphStoreHandler;
 import de.fau.wintechis.io.FileUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.TupleQuery;
@@ -15,6 +16,7 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.NotifyingSailConnection;
 import org.eclipse.rdf4j.sail.SailConnection;
+import org.eclipse.rdf4j.sail.SailConnectionListener;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import java.io.FileWriter;
@@ -66,8 +68,11 @@ public class SimulationEngine {
         // time must be updated first, before any other resource
         this.updates.put("sim.rq", connection.prepareUpdate(UPDATE_TIME));
 
+        GraphStoreHandler handler = new GraphStoreHandler(repo);
+        getNotifyingSailConnection(handler.getRepositoryConnection()).addConnectionListener(new SimulationRunner());
+
         server = new Server(port);
-        server.setHandler(new GraphStoreHandler(repo));
+        server.setHandler(handler);
 
         try {
             server.start();
@@ -110,18 +115,49 @@ public class SimulationEngine {
         connection.prepareUpdate(sparulString).execute();
     }
 
-    public void run(Integer timeSlot, Integer iterations) {
-        for (Map.Entry<String, TupleQuery> kv : queries.entrySet()) {
-            try {
-                String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".tsv");
-                writers.put(kv.getValue(),  new FileWriter(name));
-            } catch (IOException e) {
-                e.printStackTrace(); // TODO clean error handling
+    private class SimulationRunner implements SailConnectionListener {
+
+        //private final IRI sim = Vocabulary.VALUE_FACTORY.createIRI(server.getURI() + "sim");
+
+        private Integer timeSlotDuration = null;
+
+        private Integer numberOfIterations = null;
+
+        @Override
+        public void statementAdded(Statement st) {
+            if (st.getSubject().equals(Vocabulary.SIM)) {
+                if (st.getPredicate().equals(Vocabulary.TIMESLOT_DURATION)) {
+                    timeSlotDuration = Integer.parseInt(st.getObject().stringValue());
+                } else if (st.getPredicate().equals(Vocabulary.ITERATIONS)) {
+                    numberOfIterations = Integer.parseInt(st.getObject().stringValue());
+                }
+            }
+
+            if (timeSlotDuration != null && numberOfIterations != null) {
+                run(timeSlotDuration, numberOfIterations);
+                // TODO prepare runner for reset
             }
         }
 
-        TimerTask task = new IterationTask(iterations);
-        timer.scheduleAtFixedRate(task, 0, timeSlot);
+        @Override
+        public void statementRemoved(Statement st) {
+            // TODO reset runner
+        }
+
+        private void run(Integer timeSlot, Integer iterations) {
+            for (Map.Entry<String, TupleQuery> kv : queries.entrySet()) {
+                try {
+                    String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".tsv");
+                    writers.put(kv.getValue(),  new FileWriter(name));
+                } catch (IOException e) {
+                    e.printStackTrace(); // TODO clean error handling
+                }
+            }
+
+            TimerTask task = new IterationTask(iterations);
+            timer.scheduleAtFixedRate(task, 0, timeSlot);
+        }
+
     }
 
     private class IterationTask extends TimerTask {
