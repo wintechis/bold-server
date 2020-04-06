@@ -253,7 +253,7 @@ public class SimulationEngine {
                     }
                 }
 
-                clear();
+                cancel();
             } else {
                 history.timeIncremented();
 
@@ -266,6 +266,7 @@ public class SimulationEngine {
         private void clear() {
             writers.clear();
             history.clear();
+            count = 0;
         }
 
     }
