@@ -58,7 +58,6 @@ public class SimulationEngine {
         connection = repo.getConnection();
 
         history = new UpdateHistory();
-        getNotifyingSailConnection(connection).addConnectionListener(history);
 
         ValueFactory vf = Vocabulary.VALUE_FACTORY;
         Resource sim = vf.createIRI(Vocabulary.NS, "sim");
@@ -162,11 +161,13 @@ public class SimulationEngine {
         @Override
         public void graphDeleted(IRI graphName) {
             if (graphName.equals(sim)) {
-                reset();
+                cancel();
             }
         }
 
         private void run(Integer timeSlot, Integer iterations) {
+            cancel();
+
             for (Map.Entry<String, TupleQuery> kv : queries.entrySet()) {
                 try {
                     String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".tsv");
@@ -176,12 +177,14 @@ public class SimulationEngine {
                 }
             }
 
+            getNotifyingSailConnection(connection).addConnectionListener(history);
+
             TimerTask task = new IterationTask(iterations);
             timer.scheduleAtFixedRate(task, 0, timeSlot);
         }
 
-        private void reset() {
-            // TODO
+        private void cancel() {
+            timer.purge();
         }
 
     }
@@ -197,13 +200,29 @@ public class SimulationEngine {
         }
 
         @Override
+        public boolean cancel() {
+            history.clear();
+            getNotifyingSailConnection(connection).removeConnectionListener(history);
+
+            for (Writer w : writers.values()) {
+                try {
+                    w.close();
+                } catch (IOException e) {
+                    e.printStackTrace(); // TODO clean error handling
+                }
+            }
+
+            return true;
+        }
+
+        @Override
         public void run() {
             if (count++ > maxIterations) {
                 getNotifyingSailConnection(connection).removeConnectionListener(history);
 
                 connection.clear();
 
-                // replays updates and submit query at each timestamp
+                // replays updates and submit queries at each timestamp
                 for (UpdateHistory.Update cs : history) {
                     connection.remove(cs.getDeletions());
                     connection.add(cs.getInsertions());
@@ -234,21 +253,7 @@ public class SimulationEngine {
                     }
                 }
 
-                for (Writer w : writers.values()) {
-                    try {
-                        w.close();
-                    } catch (IOException e) {
-                        e.printStackTrace(); // TODO clean error handling
-                    }
-                }
-
-                timer.cancel();
-                connection.close();
-                try {
-                    server.stop();
-                } catch (Exception e) {
-                    e.printStackTrace(); // TODO clean error handling
-                }
+                cancel();
             } else {
                 history.timeIncremented();
 
