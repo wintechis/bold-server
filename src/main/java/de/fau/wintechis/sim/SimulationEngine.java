@@ -166,7 +166,7 @@ public class SimulationEngine {
         }
 
         private void run(Integer timeSlot, Integer iterations) {
-            cancel();
+            cancel(); // TODO avoid generating empty files when cancelling
 
             for (Map.Entry<String, TupleQuery> kv : queries.entrySet()) {
                 try {
@@ -201,17 +201,8 @@ public class SimulationEngine {
 
         @Override
         public boolean cancel() {
-            history.clear();
             getNotifyingSailConnection(connection).removeConnectionListener(history);
-
-            for (Writer w : writers.values()) {
-                try {
-                    w.close();
-                } catch (IOException e) {
-                    e.printStackTrace(); // TODO clean error handling
-                }
-            }
-
+            clear();
             return true;
         }
 
@@ -253,7 +244,15 @@ public class SimulationEngine {
                     }
                 }
 
-                cancel();
+                for (Writer w : writers.values()) {
+                    try {
+                        w.close();
+                    } catch (IOException e) {
+                        e.printStackTrace(); // TODO clean error handling
+                    }
+                }
+
+                clear();
             } else {
                 history.timeIncremented();
 
@@ -261,6 +260,11 @@ public class SimulationEngine {
                     u.execute();
                 }
             }
+        }
+
+        private void clear() {
+            writers.clear();
+            history.clear();
         }
 
     }
