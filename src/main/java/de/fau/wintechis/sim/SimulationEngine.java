@@ -203,7 +203,8 @@ public class SimulationEngine {
         public boolean cancel() {
             getNotifyingSailConnection(connection).removeConnectionListener(history);
             clear();
-            return true;
+
+            return super.cancel();
         }
 
         @Override

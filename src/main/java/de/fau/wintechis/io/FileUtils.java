@@ -16,6 +16,8 @@ public class FileUtils {
      * @return
      */
     public static Set<String> listFiles(String pattern) {
+        if (pattern == null) pattern = "";
+
         String regex = pattern.replaceAll("\\*", ".+");
         if (pattern.startsWith("/")) {
             // absolute path

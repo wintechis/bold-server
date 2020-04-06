@@ -22,13 +22,11 @@ public class Configurator {
     private final static String RUNTIME_QUERY_KEY = "boldng.runtime.query";
 
     public static void main(String[] args) throws IOException {
-        // TODO provide as CLI argument
-        String propertiesFilename = "ts1.properties";
-        //String propertiesFilename = "ts2.properties";
-        //String propertiesFilename = "sim.properties";
+        // TODO more advanced CLI
+        String task = args.length > 0 ? args[0] : "sim";
 
         Properties config = new Properties();
-        config.load(new FileInputStream(("sim.properties")));
+        config.load(new FileInputStream((task + ".properties")));
 
         int port = Integer.parseInt(config.getProperty(SERVER_HTTP_PORT_KEY, SERVER_HTTP_PORT_DEFAULT));
         SimulationEngine engine = new SimulationEngine(port);
