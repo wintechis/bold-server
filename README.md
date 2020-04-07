@@ -4,14 +4,13 @@ To run the server:
 
 ```shell script
 gradle install
-build/install/bold-benchmark/bin/bold-benchmark
+cd build/install/bold-benchmark
+bin/bold-benchmark
 ```
-
-_Note: the server command should be run from the project's root folder (to be fixed later)._
 
 Default server configuration is stored in `sim.properties`.
 The different tasks of the benchmark also have their own configuration file.
-The first argument of the server command is a task name, e.g. `bold-benchmark ts1` will load `ts1.properties`.
+The first argument of the server command is a task name, e.g. `bin/bold-benchmark ts1` will load `ts1.properties`.
 
 To start/stop a simulation run, send the following HTTP requests to the server:
 
