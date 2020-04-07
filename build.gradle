@@ -21,3 +21,5 @@ dependencies {
 }
 
 mainClassName = 'de.fau.wintechis.Configurator'
+
+// FIXME copy .properties files to dist
