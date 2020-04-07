@@ -53,9 +53,9 @@ public class SimulationEngine {
 
     private final RepositoryConnection connection;
 
-    private final Timer timer = new Timer();
-
     private final UpdateHistory history = new UpdateHistory();
+
+    private Timer timer;
 
     private BooleanQuery simRunningQuery = null; // TODO clean assignment
 
@@ -260,6 +260,7 @@ public class SimulationEngine {
             }
         };
 
+        timer = new Timer();
         timer.scheduleAtFixedRate(task, 0, timeSlotDuration);
     }
 
