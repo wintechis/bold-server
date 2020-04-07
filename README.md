@@ -10,6 +10,7 @@ bin/bbench-server
 
 Default server configuration is stored in `sim.properties`.
 The different tasks of the benchmark also have their own configuration file.
+First argument of the server command is a task name, e.g. `bin/bbench-server ts1` will load `ts1.properties`.
 
 To start/stop a simulation run, send the following HTTP requests to the server:
 

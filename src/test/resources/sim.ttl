@@ -1,0 +1,5 @@
+@prefix : <http://ti.rw.fau.de/sim#>  .
+@base <http://127.0.0.1:8080/> .
+
+<sim> :iterations 10 .
+      #:iterations 720 .

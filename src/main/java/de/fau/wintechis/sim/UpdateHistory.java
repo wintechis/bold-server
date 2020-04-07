@@ -26,10 +26,17 @@ class UpdateHistory extends Stack<UpdateHistory.Update> implements SailConnectio
     }
 
     public UpdateHistory() {
-        this.add(new Update());
+        // TODO add/remove listener from this class instead of in the sim engine
+        this.clear();
     }
 
     public void timeIncremented() {
+        this.add(new Update());
+    }
+
+    @Override
+    public void clear() {
+        super.clear();
         this.add(new Update());
     }
 

@@ -5,11 +5,9 @@ import de.fau.wintechis.gsp.GraphStoreListener;
 import de.fau.wintechis.io.FileUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.query.BindingSet;
-import org.eclipse.rdf4j.query.TupleQuery;
-import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.impl.LinkedHashModel;
+import org.eclipse.rdf4j.query.*;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -27,47 +25,48 @@ import java.util.*;
 
 public class SimulationEngine {
 
-    private final static String UPDATE_TIME =
-        "PREFIX : <" + Vocabulary.NS + ">\n" +
-        "DELETE { ?sim :currentTime ?time } INSERT { ?sim :currentTime ?time_p }\n" +
-        "WHERE { ?sim :currentTime ?time BIND (?time + 1 AS ?time_p) }";
+    private enum EngineState {
+        CREATED,
+        CONFIGURED,
+        EMPTY_STORE,
+        READY,
+        RUNNING,
+        REPLAYING,
+        DIRTY_STORE
+    }
 
-    private final Timer timer;
+    private final Integer timeSlotDuration = 100; // TODO as config parameter
 
-    private final Map<String, org.eclipse.rdf4j.query.Update> updates;
-
-    private final Map<String, TupleQuery> queries;
-
-    private final Map<TupleQuery, Writer> writers;
-
-    private final RepositoryConnection connection;
-
-    private final UpdateHistory history;
+    private EngineState currentState = EngineState.CREATED;
 
     private final Server server;
 
+    private final Model dataset = new LinkedHashModel();
+
+    private final Map<String, Update> singleUpdates = new HashMap<>();
+
+    private final Map<String, Update> continuousUpdates = new HashMap<>();
+
+    private final Map<String, TupleQuery> queries = new HashMap<>();
+
+    private final Map<TupleQuery, Writer> writers = new HashMap<>();
+
+    private final RepositoryConnection connection;
+
+    private final Timer timer = new Timer();
+
+    private final UpdateHistory history = new UpdateHistory();
+
+    private BooleanQuery simRunningQuery = null; // TODO clean assignment
+
     public SimulationEngine(int port) {
-        this.timer = new Timer();
-
-        this.updates = new HashMap<>();
-        this.queries = new HashMap<>();
-        this.writers = new HashMap<>();
-
+        // RDF store initialization
+        Vocabulary.registerFunctions();
         MemoryStore store = new MemoryStore();
         Repository repo = new SailRepository(store);
         connection = repo.getConnection();
 
-        history = new UpdateHistory();
-
-        ValueFactory vf = Vocabulary.VALUE_FACTORY;
-        Resource sim = vf.createIRI(Vocabulary.NS, "sim");
-        // simulation time is an arbitrary integer starting from 0
-        // (makes it easier to formulate time-dependent updates in SPARQL)
-        connection.add(sim, Vocabulary.CURRENT_TIME, vf.createLiteral(0));
-
-        // time must be updated first, before any other resource
-        this.updates.put("sim.rq", connection.prepareUpdate(UPDATE_TIME));
-
+        // GSP interface initialization
         GraphStoreHandler handler = new GraphStoreHandler(repo);
         server = new Server(port);
         server.setHandler(handler);
@@ -75,61 +74,100 @@ public class SimulationEngine {
         try {
             server.start();
 
-            SimulationRunner runner = new SimulationRunner();
+            SimListener runner = new SimListener();
             handler.addGraphStoreListener(runner);
+
+            // sim resource must be updated first, before any other resource
+            registerSingleUpdate("sim-init.rq");
+            registerContinuousUpdate("sim.rq");
+
+            // simulation ends when no iteration is left in sim resource
+            String buf = FileUtils.asString(FileUtils.getFileOrResource("sim-running.rq"));
+            simRunningQuery = connection.prepareBooleanQuery(QueryLanguage.SPARQL, buf, getBaseIRI(server));
+
+            callTransition();
         } catch (Exception e) {
             e.printStackTrace(); // TODO clean error handling
         }
-
-        Vocabulary.registerFunctions();
     }
 
-    public void registerUpdate(String filename) throws IOException {
+    public SimulationEngine registerContinuousUpdate(String filename) throws IOException {
         String buf = FileUtils.asString((FileUtils.getFileOrResource(filename)));
-        this.registerUpdate(filename, buf);
+        registerContinuousUpdate(filename, buf);
+
+        return this;
     }
 
-    public void registerUpdate(String name, String sparulString) throws IOException {
-        org.eclipse.rdf4j.query.Update u = connection.prepareUpdate(sparulString);
-        this.updates.put(name, u);
+    public SimulationEngine registerContinuousUpdate(String name, String sparulString) throws IOException {
+        Update u = connection.prepareUpdate(QueryLanguage.SPARQL, sparulString, getBaseIRI(server));
+        continuousUpdates.put(name, u);
+
+        return this;
     }
 
-    public void registerQuery(String filename) throws IOException {
+    public SimulationEngine registerQuery(String filename) throws IOException {
         String buf = FileUtils.asString((FileUtils.getFileOrResource(filename)));
-        this.registerQuery(filename, buf);
+        registerQuery(filename, buf);
+
+        return this;
     }
 
-    public void registerQuery(String name, String sparqlString) throws IOException {
-        TupleQuery q = connection.prepareTupleQuery(sparqlString);
-        this.queries.put(name, q);
+    public SimulationEngine registerQuery(String name, String sparqlString) throws IOException {
+        TupleQuery q = connection.prepareTupleQuery(QueryLanguage.SPARQL, sparqlString, getBaseIRI(server));
+        queries.put(name, q);
+
+        return this;
     }
 
-    public void loadData(String filename) throws IOException {
-        String base = server.getURI().toString();
+    public SimulationEngine registerDataset(String filename) throws IOException {
         RDFFormat format = Rio.getParserFormatForFileName(filename).orElseThrow(() -> new IOException());
+        Model ds = Rio.parse(FileUtils.getFileOrResource(filename), getBaseIRI(server), format);
+        dataset.addAll(ds);
 
-        connection.add(FileUtils.getFileOrResource(filename), base, format);
+        return this;
     }
 
-    public void executeUpdate(String filename) throws IOException {
-        String sparulString = FileUtils.asString(FileUtils.getFileOrResource(filename));
-        connection.prepareUpdate(sparulString).execute();
+    public SimulationEngine registerSingleUpdate(String filename) throws IOException {
+        String buf = FileUtils.asString((FileUtils.getFileOrResource(filename)));
+        registerSingleUpdate(filename, buf);
+
+        return this;
     }
 
-    private class SimulationRunner implements GraphStoreListener {
+    public SimulationEngine registerSingleUpdate(String name, String sparulString) throws IOException {
+        Update u = connection.prepareUpdate(QueryLanguage.SPARQL, sparulString, getBaseIRI(server));
+        singleUpdates.put(name, u);
 
-        private static final String QUERY_RUNNER_CONFIG =
-            "PREFIX : <" + Vocabulary.NS + ">\n" +
-            "SELECT ?slot ?it WHERE {\n" +
-            "?sim :timeslotDuration ?slot ; :iterations ?it }";
+        return this;
+    }
+
+    public void registrationDone() {
+        callTransition();
+    }
+
+    public void terminate() throws Exception {
+        server.stop();
+    }
+
+    /**
+     * For test purposes.
+     *
+     * @return the engine's repository connection
+     */
+    RepositoryConnection getConnection() {
+        return connection;
+    }
+
+    /**
+     * This class listens to changes to the repository coming from agents and
+     * runs a calls for a transition if the 'sim' resource is being updated/deleted.
+     */
+    private class SimListener implements GraphStoreListener {
 
         private final IRI sim;
 
-        private final TupleQuery query;
-
-        public SimulationRunner() {
+        public SimListener() {
             sim = Vocabulary.VALUE_FACTORY.createIRI(server.getURI().resolve("sim").toString());
-            query = connection.prepareTupleQuery(QUERY_RUNNER_CONFIG);
         }
 
         @Override
@@ -140,16 +178,7 @@ public class SimulationEngine {
         @Override
         public void graphUpdated(IRI graphName) {
             if (graphName.equals(sim)) {
-                TupleQueryResult res = query.evaluate();
-
-                if (res.hasNext()) {
-                    BindingSet mu = res.next();
-
-                    Integer timeSlotDuration = Integer.parseInt(mu.getValue("slot").stringValue());
-                    Integer numberOfIterations = Integer.parseInt(mu.getValue("it").stringValue());
-
-                    run(timeSlotDuration, numberOfIterations);
-                }
+                callTransition();
             }
         }
 
@@ -160,120 +189,156 @@ public class SimulationEngine {
 
         @Override
         public void graphDeleted(IRI graphName) {
-            if (graphName.equals(sim)) {
-                cancel();
-            }
-        }
-
-        private void run(Integer timeSlot, Integer iterations) {
-            cancel(); // TODO avoid generating empty files when cancelling
-
-            for (Map.Entry<String, TupleQuery> kv : queries.entrySet()) {
-                try {
-                    String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".tsv");
-                    writers.put(kv.getValue(),  new FileWriter(name));
-                } catch (IOException e) {
-                    e.printStackTrace(); // TODO clean error handling
-                }
-            }
-
-            getNotifyingSailConnection(connection).addConnectionListener(history);
-
-            TimerTask task = new IterationTask(iterations);
-            timer.scheduleAtFixedRate(task, 0, timeSlot);
-        }
-
-        private void cancel() {
-            timer.purge();
+            graphUpdated(graphName);
         }
 
     }
 
-    private class IterationTask extends TimerTask {
+    private void callTransition() {
+        switch (currentState) {
+            case CREATED:
+                // TODO move constructor statements to separate function?
+                currentState = EngineState.CONFIGURED;
+                break;
 
-        private Integer count = 0;
+            case CONFIGURED:
+                // configuration done by successive calls to class methods
+                currentState = EngineState.EMPTY_STORE;
+                callTransition();
+                break;
 
-        private Integer maxIterations;
+            case EMPTY_STORE:
+                init();
+                currentState = EngineState.READY;
+                break;
 
-        public IterationTask(Integer max) {
-            this.maxIterations = max;
-        }
+            case READY:
+                run();
+                currentState = EngineState.RUNNING;
+                break;
 
-        @Override
-        public boolean cancel() {
-            getNotifyingSailConnection(connection).removeConnectionListener(history);
-            clear();
-
-            return super.cancel();
-        }
-
-        @Override
-        public void run() {
-            if (count++ > maxIterations) {
-                getNotifyingSailConnection(connection).removeConnectionListener(history);
-
-                connection.clear();
-
-                // replays updates and submit queries at each timestamp
-                for (UpdateHistory.Update cs : history) {
-                    connection.remove(cs.getDeletions());
-                    connection.add(cs.getInsertions());
-
-                    for (TupleQuery q : queries.values()) {
-                        // TODO put this code in a TupleQueryResultHandler
-                        // vars are ordered for deterministic rendering
-                        Set<String> vars = new TreeSet<>();
-                        for (BindingSet mu : q.evaluate()) {
-                            String row = "";
-
-                            if (vars.isEmpty()) {
-                                vars.addAll(mu.getBindingNames());
-                            }
-
-                            for (String v : vars) {
-                                if (!row.isEmpty()) row += "\t";
-                                row += mu.getValue(v).stringValue();
-                            }
-                            row += "\n";
-
-                            try {
-                                writers.get(q).append(row);
-                            } catch (IOException e) {
-                                e.printStackTrace(); // TODO clean error handling
-                            }
-                        }
-                    }
+            case RUNNING:
+                Boolean simRunning = simRunningQuery.evaluate();
+                if (simRunning) {
+                    update();
+                } else {
+                    replay();
+                    currentState = EngineState.REPLAYING;
+                    callTransition();
                 }
+                break;
 
-                for (Writer w : writers.values()) {
+            case REPLAYING:
+                close();
+                currentState = EngineState.DIRTY_STORE;
+                callTransition();
+                break;
+
+            case DIRTY_STORE:
+                clean();
+                currentState = EngineState.EMPTY_STORE;
+                callTransition();
+                break;
+
+            default:
+                throw new IllegalEngineStateException();
+        }
+    }
+
+    private void init() {
+        getNotifyingSailConnection(connection).addConnectionListener(history);
+
+        connection.add(dataset);
+        for (Update u : singleUpdates.values()) u.execute();
+    }
+
+    private void run() {
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                callTransition();
+            }
+        };
+
+        timer.scheduleAtFixedRate(task, 0, timeSlotDuration);
+    }
+
+    private void update() {
+        history.timeIncremented();
+        for (Update u : continuousUpdates.values()) u.execute();
+    }
+
+    private void replay() {
+        timer.cancel();
+        timer.purge();
+        getNotifyingSailConnection(connection).removeConnectionListener(history);
+
+        for (Map.Entry<String, TupleQuery> kv : queries.entrySet()) {
+            try {
+                String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".tsv");
+                writers.put(kv.getValue(),  new FileWriter(name));
+            } catch (IOException e) {
+                e.printStackTrace(); // TODO clean error handling
+            }
+        }
+
+        connection.clear();
+
+        // replays updates and submits queries at each timestamp
+        for (UpdateHistory.Update cs : history) {
+            connection.remove(cs.getDeletions());
+            connection.add(cs.getInsertions());
+
+            for (TupleQuery q : queries.values()) {
+                // TODO put this code in a TupleQueryResultHandler
+                // vars are ordered for deterministic rendering
+                Set<String> vars = new TreeSet<>();
+                for (BindingSet mu : q.evaluate()) {
+                    String row = "";
+
+                    if (vars.isEmpty()) {
+                        vars.addAll(mu.getBindingNames());
+                    }
+
+                    for (String v : vars) {
+                        if (!row.isEmpty()) row += "\t";
+                        row += mu.getValue(v).stringValue();
+                    }
+                    row += "\n";
+
                     try {
-                        w.close();
+                        writers.get(q).append(row);
                     } catch (IOException e) {
                         e.printStackTrace(); // TODO clean error handling
                     }
                 }
-
-                cancel();
-            } else {
-                history.timeIncremented();
-
-                for (org.eclipse.rdf4j.query.Update u : updates.values()) {
-                    u.execute();
-                }
             }
         }
-
-        private void clear() {
-            writers.clear();
-            history.clear();
-            count = 0;
-        }
-
     }
 
-    private NotifyingSailConnection getNotifyingSailConnection(RepositoryConnection con) {
+    private void close() {
+        for (Writer w : writers.values()) {
+            try {
+                w.close();
+            } catch (IOException e) {
+                e.printStackTrace(); // TODO clean error handling
+            }
+        }
+    }
+
+    private void clean() {
+        writers.clear();
+        history.clear();
+        connection.clear();
+    }
+
+    private static NotifyingSailConnection getNotifyingSailConnection(RepositoryConnection con) {
         SailConnection sailCon = ((SailRepositoryConnection) con).getSailConnection();
         return (NotifyingSailConnection) sailCon;
+    }
+
+    private static String getBaseIRI(Server server) {
+        return server.getURI().toString();
     }
 
 }

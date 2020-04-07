@@ -4,7 +4,7 @@ PREFIX ssn: <http://www.w3.org/ns/ssn/>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
 
 SELECT ?time ?count WHERE {
-    sim:sim sim:currentTime ?time .
+    <sim> sim:currentTime ?time .
     {
         # counts the number of lights turned on in the building
         SELECT (count(*) as ?count) WHERE {

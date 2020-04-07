@@ -32,20 +32,22 @@ public class Configurator {
         SimulationEngine engine = new SimulationEngine(port);
 
         for (String f : FileUtils.listFiles(config.getProperty(INIT_DATASET_KEY))) {
-            engine.loadData(f);
+            engine.registerDataset(f);
         }
 
         for (String f : FileUtils.listFiles(config.getProperty(INIT_UPDATE_KEY))) {
-            engine.executeUpdate(f);
+            engine.registerSingleUpdate(f);
         }
 
         for (String f : FileUtils.listFiles(config.getProperty(RUNTIME_UPDATE_KEY))) {
-            engine.registerUpdate(f);
+            engine.registerContinuousUpdate(f);
         }
 
         for (String f : FileUtils.listFiles(config.getProperty(RUNTIME_QUERY_KEY))) {
             engine.registerQuery(f);
         }
+
+        engine.registrationDone();
     }
 
 }

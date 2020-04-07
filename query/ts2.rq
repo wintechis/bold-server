@@ -4,7 +4,7 @@ PREFIX brick: <http://buildsys.org/ontologies/Brick#>
 PREFIX ssn: <http://www.w3.org/ns/ssn/>
 
 SELECT ?time ?count WHERE {
-    sim:sim sim:currentTime ?time .
+    <sim> sim:currentTime ?time .
     {
         # counts the number of lights that were toggled in the building
         SELECT (count(*) as ?count) WHERE {
