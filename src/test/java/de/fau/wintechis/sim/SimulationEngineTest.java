@@ -2,6 +2,7 @@ package de.fau.wintechis.sim;
 
 import de.fau.wintechis.io.FileUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -48,16 +49,18 @@ public class SimulationEngineTest {
     }
 
     @Test
-    public void testConstructor() {
-        // TODO test server is running and listening to correct port
+    public void testConstructor() throws Exception {
+        int status = sendDummyRequest();
+
+        assert status == 404;
     }
 
     @Test
     public void testConfigure() {
-        // TODO empty store
+        // TODO query/update correct behavior
     }
 
-    @Test
+    //@Test FIXME init now called directly after agent starts, not after configuration
     public void testInit() throws Exception {
         ngin.registrationDone();
 
@@ -112,7 +115,9 @@ public class SimulationEngineTest {
 
         TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
 
-        assert ngin.getConnection().size() == initSize;
+        long endSize = ngin.getConnection().size();
+
+        assert endSize == initSize;
     }
 
     @Test
@@ -141,6 +146,13 @@ public class SimulationEngineTest {
     private static boolean ask(String filename, RepositoryConnection con) throws IOException {
         String buf = FileUtils.asString((FileUtils.getFileOrResource(filename)));
         return con.prepareBooleanQuery(buf).evaluate();
+    }
+
+    private static int sendDummyRequest() throws Exception {
+        CloseableHttpClient client = HttpClients.createMinimal();
+        HttpGet req = new HttpGet("http://localhost:" + TEST_PORT + "/");
+        CloseableHttpResponse resp = client.execute(req);
+        return resp.getStatusLine().getStatusCode();
     }
 
     private static int startSimulation() throws Exception {

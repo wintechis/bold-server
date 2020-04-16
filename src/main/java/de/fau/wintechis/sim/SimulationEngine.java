@@ -204,12 +204,12 @@ public class SimulationEngine {
             case CONFIGURED:
                 // configuration done by successive calls to class methods
                 currentState = EngineState.EMPTY_STORE;
-                callTransition();
                 break;
 
             case EMPTY_STORE:
                 init();
                 currentState = EngineState.READY;
+                callTransition();
                 break;
 
             case READY:
@@ -236,7 +236,7 @@ public class SimulationEngine {
 
             case DIRTY_STORE:
                 clean();
-                currentState = EngineState.EMPTY_STORE;
+                currentState = EngineState.CONFIGURED;
                 callTransition();
                 break;
 

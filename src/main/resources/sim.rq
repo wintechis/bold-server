@@ -1,11 +1,15 @@
 PREFIX : <http://ti.rw.fau.de/sim#>
 
 DELETE {
-    ?sim :currentIteration ?oldIt ;
-         :currentTime ?oldTime .
+    GRAPH <sim> {
+        ?sim :currentIteration ?oldIt ;
+             :currentTime ?oldTime .
+    }
 } INSERT {
-    ?sim :currentIteration ?it ;
-         :currentTime ?time .
+    GRAPH <sim> {
+        ?sim :currentIteration ?it ;
+             :currentTime ?time .
+    }
 } WHERE {
     ?sim :currentIteration ?oldIt .
     BIND (?oldIt + 1 AS ?it)

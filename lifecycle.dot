@@ -4,8 +4,8 @@ digraph {
 
     created [label="",fillcolor=black,style=filled]
     configured [label=""]
-    emptyStore [label=""]
-    ready [label="",shape=doublecircle]
+    emptyStore [label="",shape=doublecircle]
+    ready [label=""]
     running [label=""]
     replaying [label=""]
     dirtyStore [label=""]

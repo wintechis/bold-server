@@ -1,11 +1,15 @@
 PREFIX : <http://ti.rw.fau.de/sim#>
 
 INSERT DATA {
-    <sim> :currentIteration 0 .
+    GRAPH <sim> {
+        <sim> :currentIteration 0 .
+    }
 };
 
 INSERT {
-    <sim> :currentTime ?time .
+    GRAPH <sim> {
+        <sim> :currentTime ?time .
+    }
 } WHERE {
     OPTIONAL { <sim> :initialTime ?userTime . }
     # default time: Jan 1st, 1970
