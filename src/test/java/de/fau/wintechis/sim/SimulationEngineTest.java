@@ -71,7 +71,7 @@ public class SimulationEngineTest {
     public void testRun() throws Exception {
         ngin.registrationDone();
 
-        int status = startSimulation();
+        int status = startSimulation("sim.ttl");
 
         assert status == 201;
     }
@@ -80,7 +80,7 @@ public class SimulationEngineTest {
     public void testUpdate() throws Exception {
         ngin.registrationDone();
 
-        startSimulation();
+        startSimulation("sim.ttl");
 
         TimeUnit.MILLISECONDS.sleep(SHORTER_THAN_RUN);
 
@@ -88,10 +88,46 @@ public class SimulationEngineTest {
     }
 
     @Test
+    public void testUpdateTime() throws Exception {
+        ngin.registerQuery("sim-dates.rq").registrationDone();
+
+        startSimulation("sim-full.ttl");
+
+        TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
+
+        // FIXME is in the server's root folder... Should be in a test folder
+        File tsv = new File("sim-dates.tsv");
+
+        assert tsv.exists();
+
+        String buf = FileUtils.asString(new FileInputStream(tsv));
+
+        assert buf.equals("2020\n2020\n2020\n2020\n2020\n2020\n"); // FIXME why does minutes() not return 0, 1, 2...?
+    }
+
+    @Test
+    public void testUpdateDefaultTime() throws Exception {
+        ngin.registerQuery("sim-dates.rq").registrationDone();
+
+        startSimulation("sim-default.ttl");
+
+        TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
+
+        // FIXME is in the server's root folder... Should be in a test folder
+        File tsv = new File("sim-dates.tsv");
+
+        assert tsv.exists();
+
+        String buf = FileUtils.asString(new FileInputStream(tsv));
+
+        assert buf.equals("1970\n1970\n1970\n1970\n1970\n1970\n"); // FIXME why does minutes() not return 0, 1, 2...?
+    }
+
+    @Test
     public void testReplay() throws Exception {
         ngin.registerQuery("sim-count.rq").registrationDone();
 
-        startSimulation();
+        startSimulation("sim.ttl");
 
         TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
 
@@ -111,7 +147,7 @@ public class SimulationEngineTest {
 
         long initSize = ngin.getConnection().size();
 
-        startSimulation();
+        startSimulation("sim.ttl");
 
         TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
 
@@ -124,7 +160,7 @@ public class SimulationEngineTest {
     public void testReplayTwice() throws Exception {
         ngin.registerQuery("sim-count.rq").registrationDone();
 
-        startSimulation();
+        startSimulation("sim.ttl");
 
         TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
 
@@ -132,7 +168,7 @@ public class SimulationEngineTest {
         File tsv = new File("sim-count.tsv");
         tsv.delete();
 
-        startSimulation();
+        startSimulation("sim.ttl");
 
         TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
 
@@ -155,11 +191,11 @@ public class SimulationEngineTest {
         return resp.getStatusLine().getStatusCode();
     }
 
-    private static int startSimulation() throws Exception {
+    private static int startSimulation(String filename) throws Exception {
         CloseableHttpClient client = HttpClients.createMinimal();
         HttpPut req = new HttpPut("http://localhost:" + TEST_PORT + "/sim");
         req.addHeader("Content-Type", "text/turtle");
-        req.setEntity(new InputStreamEntity(FileUtils.getFileOrResource("sim.ttl")));
+        req.setEntity(new InputStreamEntity(FileUtils.getFileOrResource(filename)));
         CloseableHttpResponse resp = client.execute(req);
         return resp.getStatusLine().getStatusCode();
     }

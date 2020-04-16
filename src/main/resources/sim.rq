@@ -16,6 +16,6 @@ DELETE {
     OPTIONAL {
         ?sim :currentTime ?oldTime ;
              :timeslotDuration ?duration .
-        BIND (:after(?time, ?duration) AS ?time)
+        BIND (:after(?oldTime, ?duration) AS ?time)
     }
 }

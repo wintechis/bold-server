@@ -1,0 +1,5 @@
+PREFIX : <http://ti.rw.fau.de/sim#>
+
+SELECT ?it WHERE {
+    ?sim :currentIteration ?it .
+}
