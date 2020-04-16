@@ -1,6 +1,5 @@
 @prefix : <http://ti.rw.fau.de/sim#>  .
 @base <http://127.0.1.1:8080/> .
 
-<sim> :initialTime "2020-05-21T08:00:00Z"^^xsd:dateTime ;
-      :timeslotDuration 60000 ;
+<sim> :timeslotDuration 60000 ;
       :iterations 5 .

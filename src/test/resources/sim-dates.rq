@@ -1,5 +1,6 @@
 PREFIX : <http://ti.rw.fau.de/sim#>
 
-SELECT ?it WHERE {
-    ?sim :currentIteration ?it .
+SELECT ?y WHERE {
+    ?sim :currentTime ?time .
+    BIND (year(?time) AS ?y)
 }
