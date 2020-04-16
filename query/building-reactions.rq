@@ -14,7 +14,7 @@ DELETE {
     GRAPH ?fromOccupancy { ?fromOccupancy rdf:value "off" }
     GRAPH ?toOccupancy { ?toOccupancy rdf:value "on" }
 } WHERE {
-    <sim> sim:currentTime ?time .
+    <sim> sim:currentIteration ?time .
 
     # TODO delete action when done?
     ?action a sim:MoveAction ;
@@ -43,7 +43,7 @@ DELETE {
 } INSERT {
     GRAPH ?lighting { ?lighting rdf:value ?state }
 } WHERE {
-    <sim> sim:currentTime ?time .
+    <sim> sim:currentIteration ?time .
 
     # TODO delete action when done?
     ?action a sim:SwitchAction ;

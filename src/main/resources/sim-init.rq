@@ -1,5 +1,13 @@
 PREFIX : <http://ti.rw.fau.de/sim#>
 
 INSERT DATA {
-    <sim> :currentTime 0 .
+    <sim> :currentIteration 0 .
+};
+
+INSERT {
+    <sim> :currentTime ?time .
+} WHERE {
+    OPTIONAL { <sim> :initialTime ?userTime . }
+    # default time: Jan 1st, 1970
+    BIND (if(bound(?userTime), ?userTime, "1970-01-01T00:00:00Z"^^xsd:dateTime) AS ?time)
 }

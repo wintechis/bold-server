@@ -30,7 +30,7 @@ DELETE {
         ?occupant a sim:Occupant .
         FILTER NOT EXISTS { ?action a sim:MoveAction ; sim:agent ?occupant . }
 
-        <sim> sim:currentTime ?time .
+        <sim> sim:currentIteration ?time .
         BIND (0 AS ?8am)
         BIND (4 * 60 AS ?12pm)
         FILTER (?time >= ?8am && ?time < ?12pm && sim:rand(?occupant) <= 1 / 60)
@@ -47,7 +47,7 @@ DELETE {
         FILTER (?oldFrom = sim:away)
         ?occupant sim:workplace ?oldTo .
 
-        <sim> sim:currentTime ?time .
+        <sim> sim:currentIteration ?time .
         BIND (4 * 60 AS ?12pm)
         BIND (6 * 60 AS ?2pm)
         FILTER (?time >= ?12pm && ?time < ?2pm && sim:rand(?occupant) <= 1 / 60)
@@ -61,7 +61,7 @@ DELETE {
                    sim:atTime ?oldTime .
         FILTER (?oldTo = sim:cafeteria)
 
-        <sim> sim:currentTime ?time .
+        <sim> sim:currentIteration ?time .
         FILTER (sim:rand(?occupant) <= 1 / 30)
 
         ?occupant sim:workplace ?to .
@@ -72,7 +72,7 @@ DELETE {
                    sim:toLocation ?oldTo ;
                    sim:atTime ?oldTime .
 
-        <sim> sim:currentTime ?time .
+        <sim> sim:currentIteration ?time .
         BIND (8 * 60 AS ?4pm)
         FILTER (?time >= ?4pm && sim:rand(?occupant) <= 1 / 120)
 
@@ -98,7 +98,7 @@ INSERT {
               sim:atTime ?time ;
               sim:result "on" .
 } WHERE {
-    <sim> sim:currentTime ?time .
+    <sim> sim:currentIteration ?time .
 
     ?action a sim:MoveAction ;
             sim:agent ?occupant ;

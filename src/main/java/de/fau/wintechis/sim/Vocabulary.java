@@ -1,5 +1,6 @@
 package de.fau.wintechis.sim;
 
+import de.fau.wintechis.sparql.AfterFunction;
 import de.fau.wintechis.sparql.ComputeExponentialCDFFunction;
 import de.fau.wintechis.sparql.ComputeNormalCDFFunction;
 import de.fau.wintechis.sparql.RandomFunction;
@@ -26,6 +27,7 @@ public class Vocabulary {
         FunctionRegistry.getInstance().add(new ComputeExponentialCDFFunction());
         FunctionRegistry.getInstance().add(new ComputeNormalCDFFunction());
         FunctionRegistry.getInstance().add(new RandomFunction());
+        FunctionRegistry.getInstance().add(new AfterFunction());
     }
 
 }
