@@ -1,0 +1,12 @@
+PREFIX : <http://ti.rw.fau.de/sim#>
+
+# TODO compute real time from simulated time
+
+DELETE {
+    ?sim :currentTime ?oldTime .
+} INSERT {
+    ?sim :currentTime ?time .
+} WHERE {
+    ?sim :currentTime ?oldTime .
+    BIND (?oldTime + 1 AS ?time)
+}

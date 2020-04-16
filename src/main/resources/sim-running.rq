@@ -1,6 +1,6 @@
 PREFIX : <http://ti.rw.fau.de/sim#>
 
 ASK WHERE {
-    ?sim :iterations ?it .
-    FILTER (?it > 0)
+    ?sim :currentTime ?time ; :iterations ?it
+    FILTER (?time < ?it)
 }
