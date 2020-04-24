@@ -1,6 +1,8 @@
 PREFIX : <http://ti.rw.fau.de/sim#>
+PREFIX time: <http://www.w3.org/2006/time#>
 
 SELECT ?y WHERE {
-    ?sim :currentTime ?time .
+    ?sim :currentTime ?instant .
+    ?instant time:inXSDDateTimeStamp ?time .
     BIND (year(?time) AS ?y)
 }
