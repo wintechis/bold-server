@@ -89,38 +89,54 @@ public class SimulationEngineTest {
 
     @Test
     public void testUpdateTime() throws Exception {
-        ngin.registerQuery("sim-dates.rq").registrationDone();
+        ngin.registerQuery("sim-dates.rq").registerQuery("sim-dates-desc.rq").registrationDone();
 
         startSimulation("sim-full.ttl");
 
         TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
 
         // FIXME is in the server's root folder... Should be in a test folder
-        File tsv = new File("sim-dates.tsv");
+        File dates = new File("sim-dates.tsv");
+        File datesDesc = new File("sim-dates-desc.tsv");
 
-        assert tsv.exists();
+        String expected = "2020\n2020\n2020\n2020\n2020\n2020\n";
 
-        String buf = FileUtils.asString(new FileInputStream(tsv));
+        assert dates.exists();
+        assert datesDesc.exists();
 
-        assert buf.equals("2020\n2020\n2020\n2020\n2020\n2020\n"); // FIXME why does minutes() not return 0, 1, 2...?
+        String buf = FileUtils.asString(new FileInputStream(dates));
+
+        assert buf.equals(expected); // FIXME why does minutes() not return 0, 1, 2...?
+
+        buf = FileUtils.asString(new FileInputStream(datesDesc));
+
+        assert buf.equals(expected); // FIXME same
     }
 
     @Test
     public void testUpdateDefaultTime() throws Exception {
-        ngin.registerQuery("sim-dates.rq").registrationDone();
+        ngin.registerQuery("sim-dates.rq").registerQuery("sim-dates-desc.rq").registrationDone();
 
         startSimulation("sim-default.ttl");
 
         TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
 
         // FIXME is in the server's root folder... Should be in a test folder
-        File tsv = new File("sim-dates.tsv");
+        File dates = new File("sim-dates.tsv");
+        File datesDesc = new File("sim-dates-desc.tsv");
 
-        assert tsv.exists();
+        String expected = "1970\n1970\n1970\n1970\n1970\n1970\n";
 
-        String buf = FileUtils.asString(new FileInputStream(tsv));
+        assert dates.exists();
+        assert datesDesc.exists();
 
-        assert buf.equals("1970\n1970\n1970\n1970\n1970\n1970\n"); // FIXME why does minutes() not return 0, 1, 2...?
+        String buf = FileUtils.asString(new FileInputStream(dates));
+
+        assert buf.equals(expected); // FIXME why does minutes() not return 0, 1, 2...?
+
+        buf = FileUtils.asString(new FileInputStream(datesDesc));
+
+        assert buf.equals(expected); // FIXME same
     }
 
     @Test
