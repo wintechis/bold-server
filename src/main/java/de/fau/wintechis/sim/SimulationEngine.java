@@ -41,6 +41,8 @@ public class SimulationEngine {
 
     private final Server server;
 
+    private final GraphStoreHandler handler;
+
     private final Model dataset = new LinkedHashModel();
 
     private final Map<String, Update> singleUpdates = new HashMap<>();
@@ -50,6 +52,8 @@ public class SimulationEngine {
     private final Map<String, TupleQuery> queries = new HashMap<>();
 
     private final Map<TupleQuery, Writer> writers = new HashMap<>();
+
+    private String dumpPattern = null;
 
     private final RepositoryConnection connection;
 
@@ -67,7 +71,7 @@ public class SimulationEngine {
         connection = repo.getConnection();
 
         // GSP interface initialization
-        GraphStoreHandler handler = new GraphStoreHandler(repo);
+        handler = new GraphStoreHandler(repo);
         server = new Server(port);
         server.setHandler(handler);
 
@@ -137,6 +141,12 @@ public class SimulationEngine {
     public SimulationEngine registerSingleUpdate(String name, String sparulString) throws IOException {
         Update u = connection.prepareUpdate(QueryLanguage.SPARQL, sparulString, getBaseIRI(server));
         singleUpdates.put(name, u);
+
+        return this;
+    }
+
+    public SimulationEngine setDumpPattern(String filenamePattern) {
+        dumpPattern = filenamePattern;
 
         return this;
     }
@@ -247,6 +257,7 @@ public class SimulationEngine {
 
     private void init() {
         getNotifyingSailConnection(connection).addConnectionListener(history);
+        getNotifyingSailConnection(handler.getConnection()).addConnectionListener(history);
 
         connection.add(dataset);
         for (Update u : singleUpdates.values()) u.execute();
@@ -273,6 +284,7 @@ public class SimulationEngine {
         timer.cancel();
         timer.purge();
         getNotifyingSailConnection(connection).removeConnectionListener(history);
+        getNotifyingSailConnection(handler.getConnection()).removeConnectionListener(history);
 
         for (Map.Entry<String, TupleQuery> kv : queries.entrySet()) {
             try {
@@ -283,12 +295,26 @@ public class SimulationEngine {
             }
         }
 
+        RDFFormat dumpFormat = dumpPattern == null ? null : Rio.getParserFormatForFileName(dumpPattern).orElse(RDFFormat.TRIG);
+        // TODO create directories if they don't exist
+
         connection.clear();
+        int iteration = 0;
 
         // replays updates and submits queries at each timestamp
         for (UpdateHistory.Update cs : history) {
             connection.remove(cs.getDeletions());
             connection.add(cs.getInsertions());
+
+            if (dumpFormat != null) {
+                String dumpFilename = String.format(dumpPattern, iteration++);
+                try {
+                    Writer dumpWriter = new FileWriter(dumpFilename);
+                    connection.export(Rio.createWriter(dumpFormat, dumpWriter));
+                } catch (IOException e) {
+                    e.printStackTrace(); // TODO clean error handling
+                }
+            }
 
             for (TupleQuery q : queries.values()) {
                 // TODO put this code in a TupleQueryResultHandler

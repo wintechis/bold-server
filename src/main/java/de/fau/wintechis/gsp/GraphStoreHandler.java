@@ -36,6 +36,10 @@ public class GraphStoreHandler extends AbstractHandler {
         connection = repo.getConnection();
     }
 
+    public RepositoryConnection getConnection() {
+        return connection;
+    }
+
     public void addGraphStoreListener(GraphStoreListener listener) {
         listeners.add(listener);
     }
