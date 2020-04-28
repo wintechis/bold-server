@@ -29,6 +29,23 @@ public class FileUtils {
     }
 
     /**
+     * Creates subdirectories included in path if these do not exist (prior to writing files at the end of that path)
+     *
+     * @param pattern path that may include wilcards (in which case, no subdirectory is created)
+     *                or format specifiers (%s, %d, ...)
+     */
+    public static void makePath(String pattern) {
+        if (pattern == null) return;
+
+        int i = pattern.lastIndexOf("/");
+
+        if (i >= 0) {
+            String head = pattern.substring(0, i);
+            new File(head).mkdirs();
+        }
+    }
+
+    /**
      * First tries to open the file from the file system. If it does not exist, interpret it as a resource file.
      *
      * @param filename name of the file or resource

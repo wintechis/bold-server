@@ -290,13 +290,17 @@ public class SimulationEngine {
             try {
                 String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".tsv");
                 writers.put(kv.getValue(),  new FileWriter(name));
+                // TODO use makePath and put all results in a /results folder
             } catch (IOException e) {
                 e.printStackTrace(); // TODO clean error handling
             }
         }
 
-        RDFFormat dumpFormat = dumpPattern == null ? null : Rio.getParserFormatForFileName(dumpPattern).orElse(RDFFormat.TRIG);
-        // TODO create directories if they don't exist
+        RDFFormat dumpFormat = null;
+        if (dumpPattern != null) {
+            FileUtils.makePath(dumpPattern);
+            dumpFormat = Rio.getParserFormatForFileName(dumpPattern).orElse(RDFFormat.TRIG);
+        }
 
         connection.clear();
         int iteration = 0;
