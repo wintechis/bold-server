@@ -30,4 +30,6 @@ While running, simulated time is available under `/sim` as follows:
 
 At the end of a simulation run, the solution for each registered query is stored in a TSV file
 (same location as the corresponding query file). E.g., the result for `query/ts1.rq` will be stored in `query/ts1.tsv`.
+Note that the `query/` path is relative to from where you ran `bin/bold-benchmark`.
+That is, your results will end up in `query/` in `build/install/bold-benchmark/` (and not in `query/` in `bbench-server/`) if you followed the running instructions above.
 Note that any consequent run will overwrite all TSV files.
