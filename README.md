@@ -5,7 +5,7 @@ To run the server:
 ```shell script
 gradle install
 cd build/install/bold-benchmark
-bin/bold-benchmark
+bin/bold-benchmark <taskname>
 ```
 
 Default server configuration is stored in `sim.properties`.
