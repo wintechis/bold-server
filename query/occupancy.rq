@@ -3,8 +3,8 @@ PREFIX brick: <http://buildsys.org/ontologies/Brick#>
 PREFIX sosa: <http://www.w3.org/ns/sosa/>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
 
-SELECT ?time ?count WHERE {
-    <sim> sim:currentTime ?time .
+SELECT ?it ?count WHERE {
+    <sim> sim:currentIteration ?it .
     {
         # counts the number of occupants in the building
         SELECT (count(*) as ?count) WHERE {

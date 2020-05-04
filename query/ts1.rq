@@ -1,16 +1,18 @@
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX brick: <http://buildsys.org/ontologies/Brick#>
 PREFIX ssn: <http://www.w3.org/ns/ssn/>
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
 
-SELECT ?time ?count WHERE {
-    <sim> sim:currentTime ?time .
+SELECT ?it ?count WHERE {
+    <sim> sim:currentIteration ?it .
     {
         # counts the number of lights turned on in the building
         SELECT (count(*) as ?count) WHERE {
-            ?switch a brick:Lighting ;
-                    ssn:hasProperty ?lighting .
-            ?lighting rdf:value "on" .
+            ?switch a brick:Luminance_Command ;
+                    sosa:actsOnProperty ?lighting .
+            ?lighting rdf:value ?val .
+            FILTER (?val != "off")
         }
     }
 }
