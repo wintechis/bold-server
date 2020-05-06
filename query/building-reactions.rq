@@ -1,4 +1,5 @@
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX ssn: <http://www.w3.org/ns/ssn/>
 PREFIX sosa: <http://www.w3.org/ns/sosa/>
 PREFIX brick: <http://buildsys.org/ontologies/Brick#>
@@ -8,11 +9,11 @@ PREFIX sim: <http://ti.rw.fau.de/sim#>
 # occupancy sensor gets updated if move action
 
 DELETE {
-    GRAPH ?fromOccupancy { ?fromOccupancy rdf:value ?fromState }
-    GRAPH ?toOccupancy { ?toOccupancy rdf:value ?toState }
+    GRAPH ?fromGraph { ?fromOccupancy rdf:value ?fromState }
+    GRAPH ?toGraph { ?toOccupancy rdf:value ?toState }
 } INSERT {
-    GRAPH ?fromOccupancy { ?fromOccupancy rdf:value "off" }
-    GRAPH ?toOccupancy { ?toOccupancy rdf:value "on" }
+    GRAPH ?fromGraph { ?fromOccupancy rdf:value "off" }
+    GRAPH ?toGraph { ?toOccupancy rdf:value "on" }
 } WHERE {
     <sim> sim:currentIteration ?time .
 
@@ -26,22 +27,24 @@ DELETE {
     OPTIONAL {
         ?from bf:hasPoint ?fromSensor .
         ?fromSensor a brick:Occupancy_Sensor ; sosa:observes ?fromOccupancy .
-        ?fromOccupancy rdf:value ?fromState .
+        ?fromOccupancy rdf:value ?fromState ;
+                       foaf:isPrimaryTopicOf ?fromGraph .
     }
 
     OPTIONAL {
         ?to bf:hasPoint ?toSensor .
         ?toSensor a brick:Occupancy_Sensor ; sosa:observes ?toOccupancy .
-        ?toOccupancy rdf:value ?toState .
+        ?toOccupancy rdf:value ?toState ;
+                     foaf:isPrimaryTopicOf ?toGraph .
     }
 };
 
 # switch status gets updated (light, appliance)
 
 DELETE {
-    GRAPH ?lighting { ?lighting rdf:value ?oldState }
+    GRAPH ?g { ?lighting rdf:value ?oldState }
 } INSERT {
-    GRAPH ?lighting { ?lighting rdf:value ?state }
+    GRAPH ?g { ?lighting rdf:value ?state }
 } WHERE {
     <sim> sim:currentIteration ?time .
 
@@ -54,7 +57,8 @@ DELETE {
             sim:result ?state .
 
     ?switch ssn:hasProperty ?lighting .
-    ?lighting rdf:value ?oldState .
+    ?lighting rdf:value ?oldState ;
+              foaf:isPrimaryTopicOf ?g .
 }
 
 # illuminance gets updated (by lighting systems and sunlight)
