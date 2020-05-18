@@ -16,7 +16,7 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.10'
 
-    compile group: 'org.eclipse.rdf4j', name : 'rdf4j-storage', version: '3.1.1'
+    compile group: 'org.eclipse.rdf4j', name : 'rdf4j-storage', version: '3.2.0'
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.12.RC2'
 }
 

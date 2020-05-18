@@ -1,0 +1,40 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX ssn: <http://www.w3.org/ns/ssn/>
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX qudt: <http://qudt.org/schema/qudt#>
+PREFIX time: <http://www.w3.org/2006/time#>
+PREFIX brick: <http://buildsys.org/ontologies/Brick#>
+PREFIX bf: <http://buildsys.org/ontologies/BrickFrame#>
+PREFIX sim: <http://ti.rw.fau.de/sim#>
+
+DELETE {
+    GRAPH ?g { ?illuminance qudt:numericValue ?oldVal }
+} INSERT {
+    GRAPH ?g { ?illuminance qudt:numericValue ?val }
+} WHERE {
+    # reference: illuminance values at https://en.wikipedia.org/wiki/Lux
+
+    ?sim sim:currentTime ?userTime ;
+         sim:sunriseTime ?sunriseTime ;
+         sim:sunsetTime ?sunsetTime .
+
+    ?userTime time:inXSDDateTimeStamp ?time .
+    ?sunriseTime time:inXSDDateTimeStamp ?sunrise .
+    ?sunsetTime time:inXSDDateTimeStamp ?sunset .
+
+    ?sensor a brick:Outside_Luminance_Sensor ;
+            sosa:observes ?illuminance .
+    ?illuminance qudt:numericValue ?oldVal ;
+                 foaf:isPrimaryTopicOf ?g .
+
+    # TODO model dawn and twilight as linear increase in illuminance
+    BIND (?time < ?sunrise || ?time > ?sunset AS ?night)
+    BIND (if(?night, 0, 10000) AS ?base)
+
+    # TODO continuous function
+    BIND (0.9 AS ?cloudCover)
+
+    BIND (?base * ?cloudCover AS ?val)
+}
