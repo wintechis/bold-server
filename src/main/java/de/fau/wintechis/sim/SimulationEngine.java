@@ -306,9 +306,14 @@ public class SimulationEngine {
         int iteration = 0;
 
         // replays updates and submits queries at each timestamp
-        for (UpdateHistory.Update cs : history) {
-            connection.remove(cs.getDeletions());
-            connection.add(cs.getInsertions());
+        for (UpdateHistory.UpdateSequence cs : history) {
+            for (UpdateHistory.Update u : cs) {
+                if (u.getOperation().equals(UpdateHistory.UpdateOperation.INSERT)) {
+                    connection.add(u.getStatement());
+                } else if (u.getOperation().equals(UpdateHistory.UpdateOperation.DELETE)) {
+                    connection.remove(u.getStatement());
+                }
+            }
 
             if (dumpFormat != null) {
                 String dumpFilename = String.format(dumpPattern, iteration++);

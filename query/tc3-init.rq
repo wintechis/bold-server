@@ -32,6 +32,23 @@ INSERT {
     BIND (xsd:dateTime(concat(?date, "T", ?sunsetTime, ?tz)) AS ?sunset)
 };
 
+INSERT {
+	[] a sim:CloudCoverageStimulus ;
+	   sim:startCoverage ?start ;
+	   sim:endCoverage ?end .
+} WHERE {
+	<sim> sim:sunriseTime ?sunriseTimestamp ;
+		  sim:sunsetTime ?sunsetTimestamp .
+
+	?sunriseTimestamp time:inXSDDateTimeStamp ?sunrise .
+	?sunsetTimestamp time:inXSDDateTimeStamp ?sunset .
+
+	# reference coverage values in [0,1] at sunrise and sunset
+
+	BIND (sim:rand(?sunrise) AS ?start)
+	BIND (sim:rand(?sunset) AS ?end)
+};
+
 DELETE {
     GRAPH ?g { ?illuminance qudt:numericValue ?oldVal }
 } INSERT {
