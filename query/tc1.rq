@@ -1,0 +1,32 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX time: <http://www.w3.org/2006/time#>
+PREFIX brick: <http://buildsys.org/ontologies/Brick#>
+PREFIX ssn: <http://www.w3.org/ns/ssn/>
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX schema: <http://schema.org/>
+PREFIX sim: <http://ti.rw.fau.de/sim#>
+
+SELECT ?it ?count WHERE {
+    <sim> sim:currentIteration ?it .
+    {
+        # counts the number of lights turned on in the building
+        SELECT (count(*) as ?count) WHERE {
+        	<sim> sim:currentTime ?timestamp .
+
+			?building a brick:Building ;
+			          schema:openingHoursSpecification ?spec .
+			?spec schema:opens ?openingTimestamp ;
+			      schema:closes ?closingTimestamp .
+
+        	?timestamp time:inXSDDateTimeStamp ?time .
+			?openingTimestamp time:inXSDDateTimeStamp ?opening .
+			?closingTimestamp time:inXSDDateTimeStamp ?closing .
+
+            ?switch a brick:Luminance_Command ;
+                    sosa:actsOnProperty ?lighting .
+            ?lighting rdf:value ?val .
+
+            FILTER (if(?time < ?opening || ?time > ?closing, ?val != "off", ?val != "on"))
+        }
+    }
+}

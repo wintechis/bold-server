@@ -13,7 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Date;
 
 /**
- * This custom function turns an xsd:dateTime into an integer Unix timestamp (number of seconds since Jan, 1st 1970).
+ * This custom function turns an xsd:dateTime into an integer Unix timestamp (number of milliseconds since Jan, 1st 1970).
  */
 public class InUnixTimeStampFunction implements Function {
 
@@ -39,8 +39,6 @@ public class InUnixTimeStampFunction implements Function {
         XMLGregorianCalendar date = ((Literal) args[0]).calendarValue();
         Long millis = date.toGregorianCalendar().getTimeInMillis();
 
-        Long sec = millis / 1000l;
-
-        return Vocabulary.VALUE_FACTORY.createLiteral(sec);
+        return Vocabulary.VALUE_FACTORY.createLiteral(millis);
     }
 }

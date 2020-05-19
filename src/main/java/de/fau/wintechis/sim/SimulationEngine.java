@@ -45,9 +45,9 @@ public class SimulationEngine {
 
     private final Model dataset = new LinkedHashModel();
 
-    private final Map<String, Update> singleUpdates = new HashMap<>();
+    private final Map<String, Update> singleUpdates = new LinkedHashMap<>();
 
-    private final Map<String, Update> continuousUpdates = new HashMap<>();
+    private final Map<String, Update> continuousUpdates = new LinkedHashMap<>();
 
     private final Map<String, TupleQuery> queries = new HashMap<>();
 

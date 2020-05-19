@@ -12,6 +12,8 @@ public class FileUtils {
     /**
      * Returns a list of file names matching the given pattern.
      *
+     * FIXME comply to shell file patterns (e.g. '*' also matches empty strings)
+     *
      * @param pattern path that may include wildcards (*)
      * @return
      */
