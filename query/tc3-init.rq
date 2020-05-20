@@ -9,6 +9,17 @@ PREFIX brick: <http://buildsys.org/ontologies/Brick#>
 PREFIX bf: <http://buildsys.org/ontologies/BrickFrame#>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
 
+INSERT DATA {
+  GRAPH <Building_B3> {
+    <Building_B3> bf:hasPart <Floor_out> .
+    <Floor_out> bf:isPartOf <Building_B3> .
+  }
+  GRAPH <Floor_out> {
+    <Building_B3> bf:hasPart <Floor_out> .
+    <Floor_out> bf:isPartOf <Building_B3> .
+  }
+} ;
+
 INSERT {
     GRAPH <sim> {
         <sim> sim:sunriseTime [ time:inXSDDateTimeStamp ?sunrise ] ;
