@@ -218,7 +218,7 @@ public class SimulationEngine {
 
             case CONFIGURED:
                 // configuration done by successive calls to class methods
-                log.info("Simulation engine configured, listening to agent start...");
+                log.info("Simulation engine configured, waiting for agent's start command...");
                 currentState = EngineState.EMPTY_STORE;
                 break;
 
