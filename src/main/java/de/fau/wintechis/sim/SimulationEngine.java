@@ -17,6 +17,8 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.NotifyingSailConnection;
 import org.eclipse.rdf4j.sail.SailConnection;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -34,6 +36,8 @@ public class SimulationEngine {
         REPLAYING,
         DIRTY_STORE
     }
+
+    private final Logger log = LoggerFactory.getLogger(SimulationEngine.class);
 
     private final Integer timeSlotDuration = 100; // TODO as config parameter
 
@@ -207,22 +211,26 @@ public class SimulationEngine {
     private void callTransition() {
         switch (currentState) {
             case CREATED:
+                log.info("Simulation engine created, server started.");
                 // TODO move constructor statements to separate function?
                 currentState = EngineState.CONFIGURED;
                 break;
 
             case CONFIGURED:
                 // configuration done by successive calls to class methods
+                log.info("Simulation engine configured, listening to agent start...");
                 currentState = EngineState.EMPTY_STORE;
                 break;
 
             case EMPTY_STORE:
+                log.info("Initializing simulation run...");
                 init();
                 currentState = EngineState.READY;
                 callTransition();
                 break;
 
             case READY:
+                log.info("Simulation running...");
                 run();
                 currentState = EngineState.RUNNING;
                 break;
@@ -230,8 +238,10 @@ public class SimulationEngine {
             case RUNNING:
                 Boolean simRunning = simRunningQuery.evaluate();
                 if (simRunning) {
+                    // TODO log progress
                     update();
                 } else {
+                    log.info("Simulation run done. Replaying simulation...");
                     replay();
                     currentState = EngineState.REPLAYING;
                     callTransition();
@@ -239,12 +249,14 @@ public class SimulationEngine {
                 break;
 
             case REPLAYING:
+                log.info("Replay done. Writing to files...");
                 close();
                 currentState = EngineState.DIRTY_STORE;
                 callTransition();
                 break;
 
             case DIRTY_STORE:
+                log.info("Results written to file. Cleaning resources...");
                 clean();
                 currentState = EngineState.CONFIGURED;
                 callTransition();
