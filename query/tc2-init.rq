@@ -11,11 +11,15 @@ PREFIX schema: <http://schema.org/>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
 
 INSERT {
-    GRAPH <sim> {
-        <sim> sim:sunriseTime [ time:inXSDDateTimeStamp ?sunrise ] ;
-              sim:sunsetTime [ time:inXSDDateTimeStamp ?sunset ] .
+    GRAPH ?building {
+        ?building schema:openingHoursSpecification [
+        	schema:opens [ time:inXSDDateTimeStamp ?opening ] ;
+			schema:closes [ time:inXSDDateTimeStamp ?closing ]
+        ] .
     }
 } WHERE {
+    ?building a brick:Building .
+
     <sim> sim:currentTime ?userTime .
     ?userTime time:inXSDDateTimeStamp ?time .
 
@@ -25,12 +29,11 @@ INSERT {
     BIND (concat(?year, "-", ?month, "-", ?day) AS ?date)
     BIND (tz(?time) AS ?tz)
 
-    # TODO compute them according to the starting date instead
-    BIND ("06:00:00" AS ?sunriseTime)
-    BIND ("21:00:00" AS ?sunsetTime)
+    BIND ("08:00:00" AS ?openingTime)
+    BIND ("19:00:00" AS ?closingTime)
 
-    BIND (xsd:dateTime(concat(?date, "T", ?sunriseTime, ?tz)) AS ?sunrise)
-    BIND (xsd:dateTime(concat(?date, "T", ?sunsetTime, ?tz)) AS ?sunset)
+    BIND (xsd:dateTime(concat(?date, "T", ?openingTime, ?tz)) AS ?opening)
+    BIND (xsd:dateTime(concat(?date, "T", ?closingTime, ?tz)) AS ?closing)
 };
 
 DELETE {

@@ -11,19 +11,22 @@ SELECT ?it ?count WHERE {
     {
         # counts the number of lights turned on in the building
         SELECT (count(*) as ?count) WHERE {
-        	<sim> sim:currentTime ?timestamp ;
-        	      sim:sunriseTime ?sunriseTimestamp ;
-                  sim:sunsetTime ?sunsetTimestamp .
+        	<sim> sim:currentTime ?timestamp .
 
-			?timestamp time:inXSDDateTimeStamp ?time .
-            ?sunriseTimestamp time:inXSDDateTimeStamp ?sunrise .
-            ?sunsetTimestamp time:inXSDDateTimeStamp ?sunset .
+			?building a brick:Building ;
+			          schema:openingHoursSpecification ?spec .
+			?spec schema:opens ?openingTimestamp ;
+			      schema:closes ?closingTimestamp .
+
+        	?timestamp time:inXSDDateTimeStamp ?time .
+			?openingTimestamp time:inXSDDateTimeStamp ?opening .
+			?closingTimestamp time:inXSDDateTimeStamp ?closing .
 
             ?switch a brick:Luminance_Command ;
                     sosa:actsOnProperty ?lighting .
             ?lighting rdf:value ?val .
 
-            FILTER (if(?time < ?sunrise || ?time > ?sunset, ?val != "off", ?val != "on"))
+            FILTER (if(?time < ?opening || ?time > ?closing, ?val != "off", ?val != "on"))
         }
     }
 }
