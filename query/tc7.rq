@@ -6,7 +6,7 @@ PREFIX ssn: <http://www.w3.org/ns/ssn/>
 PREFIX sosa: <http://www.w3.org/ns/sosa/>
 PREFIX qudt: <http://qudt.org/schema/qudt#>
 
-SELECT ?it ?count ?countRef WHERE {
+SELECT ?it ?count WHERE {
     <sim> sim:currentIteration ?it .
     {
         SELECT (count(*) as ?count) WHERE {
@@ -27,24 +27,7 @@ SELECT ?it ?count ?countRef WHERE {
                   ssn:hasProperty ?desiredLighting .
             ?desiredLighting qudt:numericValue ?desiredLightingValue .
 
-			FILTER (?occupancyValue = "on" && ?lightingValue > 500.0 && ?lightingValue < ?desiredLightingValue)
-        }
-    }
-    {
-        SELECT (count(*) as ?countRef) WHERE {
-        	?room a brick:Room .
-
-            ?sensor1 a brick:Occupancy_Sensor ;
-                     bf:isLocatedIn ?room ;
-                     sosa:observes ?occupancy .
-            ?occupancy rdf:value ?occupancyValue .
-
-            ?sensor2 a brick:Luminance_Sensor ;
-                     bf:isLocatedIn ?room ;
-                     sosa:observes ?lighting .
-            ?lighting qudt:numericValue ?lightingValue .
-
-			FILTER (?occupancyValue = "on" && ?lightingValue > 500.0)
+			FILTER (?occupancyValue = "on" && ?lightingValue < ?desiredLightingValue)
         }
     }
 }

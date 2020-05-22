@@ -22,7 +22,7 @@ SELECT ?it ?count WHERE {
                      sosa:observes ?lighting .
             ?lighting qudt:numericValue ?lightingValue .
 
-			FILTER (?occupancyValue = "on" && ?lightingValue > 500)
+			FILTER (?occupancyValue = "on" && ?lightingValue > 500) # 500 lux: office lighting
         }
     }
 }

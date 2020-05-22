@@ -69,4 +69,17 @@ DELETE {
             sosa:observes ?illuminance .
     ?illuminance foaf:isPrimaryTopicOf ?g .
     OPTIONAL { ?illuminance qudt:numericValue ?oldVal }
+};
+
+DELETE {
+    GRAPH ?g { ?lighting rdf:value ?oldState }
+} INSERT {
+    GRAPH ?g { ?lighting rdf:value ?state }
+    ?lighting sim:initialValue ?state
+} WHERE {
+    ?switch a brick:Luminance_Command ;
+            sosa:actsOnProperty ?lighting .
+    ?lighting rdf:value ?oldState ;
+              foaf:isPrimaryTopicOf ?g .
+    BIND (if(sim:rand(?lighting) < 0.5, "on", "off") AS ?state)
 }
