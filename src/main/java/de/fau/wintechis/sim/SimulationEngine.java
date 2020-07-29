@@ -218,13 +218,17 @@ public class SimulationEngine {
 
             case CONFIGURED:
                 // configuration done by successive calls to class methods
-                log.info("Simulation engine configured, waiting for agent's start command...");
+                // TODO use a Configuration object
+                log.info("Simulation engine configured. Current configuration: (single updates) {}; (continuous updates) {}; (queries) {}; (dump pattern) {}.", singleUpdates.keySet(), continuousUpdates.keySet(), queries.keySet(), dumpPattern);
+                log.info("Waiting for agent's start command...");
                 currentState = EngineState.EMPTY_STORE;
                 break;
 
             case EMPTY_STORE:
                 log.info("Initializing simulation run...");
                 init();
+                log.info("Simulation ready: {} resources, {} quads in dataset.", dataset.contexts().size(), dataset.size());
+                // TODO log nb of iterations (estimated duration)
                 currentState = EngineState.READY;
                 callTransition();
                 break;
@@ -238,10 +242,10 @@ public class SimulationEngine {
             case RUNNING:
                 Boolean simRunning = simRunningQuery.evaluate();
                 if (simRunning) {
-                    // TODO log progress
                     update();
                 } else {
                     log.info("Simulation run done. Replaying simulation...");
+                    log.info("Average dataset operations: ", history.size()); // FIXME
                     replay();
                     currentState = EngineState.REPLAYING;
                     callTransition();
@@ -315,20 +319,28 @@ public class SimulationEngine {
         }
 
         connection.clear();
-        int iteration = 0;
 
         // replays updates and submits queries at each timestamp
-        for (UpdateHistory.UpdateSequence cs : history) {
+        for (int iteration = 0; iteration < history.size(); iteration++) {
+            UpdateHistory.UpdateSequence cs = history.get(iteration);
+
+            log.info("Replaying iteration {}...", iteration);
+
+            int insertions = 0, deletions = 0;
             for (UpdateHistory.Update u : cs) {
                 if (u.getOperation().equals(UpdateHistory.UpdateOperation.INSERT)) {
                     connection.add(u.getStatement());
+                    insertions++;
                 } else if (u.getOperation().equals(UpdateHistory.UpdateOperation.DELETE)) {
                     connection.remove(u.getStatement());
+                    deletions++;
                 }
             }
 
+            log.info("Done {} insertions, {} deletions...", insertions, deletions);
+
             if (dumpFormat != null) {
-                String dumpFilename = String.format(dumpPattern, iteration++);
+                String dumpFilename = String.format(dumpPattern, iteration);
                 try {
                     Writer dumpWriter = new FileWriter(dumpFilename);
                     connection.export(Rio.createWriter(dumpFormat, dumpWriter));
@@ -336,6 +348,8 @@ public class SimulationEngine {
                     e.printStackTrace(); // TODO clean error handling
                 }
             }
+
+            long before = System.currentTimeMillis();
 
             for (TupleQuery q : queries.values()) {
                 // TODO put this code in a TupleQueryResultHandler
@@ -361,6 +375,10 @@ public class SimulationEngine {
                     }
                 }
             }
+
+            long after = System.currentTimeMillis();
+
+            log.info("Executed queries in {} ms.", after - before);
         }
     }
 
