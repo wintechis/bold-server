@@ -20,6 +20,8 @@ public class Vocabulary {
 
     public static final IRI CURRENT_TIME = VALUE_FACTORY.createIRI(NS, "currentTime");
 
+    public static final IRI RANDOM_SEED = VALUE_FACTORY.createIRI(NS, "randomSeed");
+
     public static void registerFunctions() {
         FunctionRegistry.getInstance().add(new ComputeExponentialCDFFunction());
         FunctionRegistry.getInstance().add(new ComputeNormalCDFFunction());
