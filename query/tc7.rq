@@ -6,28 +6,28 @@ PREFIX ssn: <http://www.w3.org/ns/ssn/>
 PREFIX sosa: <http://www.w3.org/ns/sosa/>
 PREFIX qudt: <http://qudt.org/schema/qudt#>
 
-SELECT ?it ?count WHERE {
-    <sim> sim:currentIteration ?it .
-    {
-        SELECT (count(*) as ?count) WHERE {
-        	?room a brick:Room .
+SELECT ?occupancy ?lighting WHERE {
+	?sensor1 a brick:Occupancy_Sensor ;
+			 bf:isLocatedIn ?room ;
+			 sosa:observes ?occupancy .
+	?occupancy rdf:value ?occupancyValue .
 
-            ?sensor1 a brick:Occupancy_Sensor ;
-                     bf:isLocatedIn ?room ;
-                     sosa:observes ?occupancy .
-            ?occupancy rdf:value ?occupancyValue .
+	?sensor2 a brick:Luminance_Sensor ;
+			 bf:isLocatedIn ?room ;
+			 sosa:observes ?illuminance .
+	?illuminance qudt:numericValue ?illuminanceValue .
 
-            ?sensor2 a brick:Luminance_Sensor ;
-                     bf:isLocatedIn ?room ;
-                     sosa:observes ?lighting .
-            ?lighting qudt:numericValue ?lightingValue .
+	?switch a brick:Luminance_Command ;
+			bf:isLocatedIn ?room ;
+			sosa:actsOnProperty ?lighting .
+	?lighting rdf:value ?lightingValue .
 
-            ?sp a brick:Luminance_Setpoint ;
-                  bf:isLocatedIn ?room ;
-                  ssn:hasProperty ?desiredLighting .
-            ?desiredLighting qudt:numericValue ?desiredLightingValue .
+	?sp a brick:Luminance_Setpoint ;
+		  bf:isLocatedIn ?room ;
+		  ssn:hasProperty ?desiredIlluminance .
+	?desiredIlluminance qudt:numericValue ?desiredIlluminanceValue .
 
-			FILTER (?occupancyValue = "on" && ?lightingValue < ?desiredLightingValue)
-        }
-    }
+	?room a brick:Room .
+
+	FILTER (if(?occupancyValue = "off" || ?lightingValue > ?desiredIlluminanceValue, ?lightingValue != "off", ?lightingValue != "on"))
 }

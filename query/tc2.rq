@@ -6,27 +6,21 @@ PREFIX sosa: <http://www.w3.org/ns/sosa/>
 PREFIX schema: <http://schema.org/>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
 
-SELECT ?it ?count WHERE {
-    <sim> sim:currentIteration ?it .
-    {
-        # counts the number of lights turned on in the building
-        SELECT (count(*) as ?count) WHERE {
-        	<sim> sim:currentTime ?timestamp .
+SELECT ?lighting WHERE {
+	<sim> sim:currentTime ?timestamp .
 
-			?building a brick:Building ;
-			          schema:openingHoursSpecification ?spec .
-			?spec schema:opens ?openingTimestamp ;
-			      schema:closes ?closingTimestamp .
+	?building a brick:Building ;
+			  schema:openingHoursSpecification ?spec .
+	?spec schema:opens ?openingTimestamp ;
+		  schema:closes ?closingTimestamp .
 
-        	?timestamp time:inXSDDateTimeStamp ?time .
-			?openingTimestamp time:inXSDDateTimeStamp ?opening .
-			?closingTimestamp time:inXSDDateTimeStamp ?closing .
+	?timestamp time:inXSDDateTimeStamp ?time .
+	?openingTimestamp time:inXSDDateTimeStamp ?opening .
+	?closingTimestamp time:inXSDDateTimeStamp ?closing .
 
-            ?switch a brick:Luminance_Command ;
-                    sosa:actsOnProperty ?lighting .
-            ?lighting rdf:value ?val .
+	?switch a brick:Luminance_Command ;
+			sosa:actsOnProperty ?lighting .
+	?lighting rdf:value ?val .
 
-            FILTER (if(?time < ?opening || ?time > ?closing, ?val != "off", ?val != "on"))
-        }
-    }
+	FILTER (if(?time < ?opening || ?time > ?closing, ?val != "off", ?val != "on"))
 }

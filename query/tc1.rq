@@ -6,24 +6,20 @@ PREFIX sosa: <http://www.w3.org/ns/sosa/>
 PREFIX schema: <http://schema.org/>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
 
-SELECT ?it ?count WHERE {
-    <sim> sim:currentIteration ?it .
-    {
-        # counts the number of lights turned on in the building
-        SELECT (count(*) as ?count) WHERE {
-        	<sim> sim:currentTime ?timestamp ;
-        	      sim:sunriseTime ?sunriseTimestamp ;
-                  sim:sunsetTime ?sunsetTimestamp .
+# FIXME sunset, sunrise should be for several days
 
-			?timestamp time:inXSDDateTimeStamp ?time .
-            ?sunriseTimestamp time:inXSDDateTimeStamp ?sunrise .
-            ?sunsetTimestamp time:inXSDDateTimeStamp ?sunset .
+SELECT ?lighting WHERE {
+	<sim> sim:currentTime ?timestamp ;
+		  sim:sunriseTime ?sunriseTimestamp ;
+		  sim:sunsetTime ?sunsetTimestamp .
 
-            ?switch a brick:Luminance_Command ;
-                    sosa:actsOnProperty ?lighting .
-            ?lighting rdf:value ?val .
+	?timestamp time:inXSDDateTimeStamp ?time .
+	?sunriseTimestamp time:inXSDDateTimeStamp ?sunrise .
+	?sunsetTimestamp time:inXSDDateTimeStamp ?sunset .
 
-            FILTER (if(?time < ?sunrise || ?time > ?sunset, ?val != "off", ?val != "on"))
-        }
-    }
+	?switch a brick:Luminance_Command ;
+			sosa:actsOnProperty ?lighting .
+	?lighting rdf:value ?val .
+
+	FILTER (if(?time < ?sunrise || ?time > ?sunset, ?val != "on", ?val != "off"))
 }

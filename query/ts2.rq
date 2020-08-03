@@ -4,15 +4,9 @@ PREFIX brick: <http://buildsys.org/ontologies/Brick#>
 PREFIX ssn: <http://www.w3.org/ns/ssn/>
 PREFIX sosa: <http://www.w3.org/ns/sosa/>
 
-SELECT ?it ?count WHERE {
-    <sim> sim:currentIteration ?it .
-    {
-        # counts the number of lights that were toggled in the building
-        SELECT (count(*) as ?count) WHERE {
-            ?switch a brick:Luminance_Command ;
-                    sosa:actsOnProperty ?lighting .
-            ?lighting rdf:value ?state ;
-                      sim:initialValue ?state .
-        }
-    }
+SELECT ?lighting WHERE {
+	?switch a brick:Luminance_Command ;
+			sosa:actsOnProperty ?lighting .
+	?lighting rdf:value ?state ;
+			  sim:initialValue ?state .
 }

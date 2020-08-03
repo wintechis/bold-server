@@ -4,15 +4,10 @@ PREFIX ssn: <http://www.w3.org/ns/ssn/>
 PREFIX sosa: <http://www.w3.org/ns/sosa/>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
 
-SELECT ?it ?count WHERE {
-    <sim> sim:currentIteration ?it .
-    {
-        # counts the number of lights turned on in the building
-        SELECT (count(*) as ?count) WHERE {
-            ?switch a brick:Luminance_Command ;
-                    sosa:actsOnProperty ?lighting .
-            ?lighting rdf:value ?val .
-            FILTER (?val != "off")
-        }
-    }
+SELECT ?lighting WHERE {
+	?switch a brick:Luminance_Command ;
+			sosa:actsOnProperty ?lighting .
+	?lighting rdf:value ?val .
+
+	FILTER (?val != "off")
 }

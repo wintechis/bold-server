@@ -6,25 +6,19 @@ PREFIX ssn: <http://www.w3.org/ns/ssn/>
 PREFIX sosa: <http://www.w3.org/ns/sosa/>
 PREFIX qudt: <http://qudt.org/schema/qudt#>
 
-SELECT ?it ?count WHERE {
-    <sim> sim:currentIteration ?it .
-    {
-        SELECT (count(*) AS ?count) WHERE {
-            ?sensor a brick:Luminance_Sensor ;
-                    bf:isLocatedIn ?room ;
-                    sosa:observes ?illuminance .
-            ?illuminance qudt:numericValue ?val .
+SELECT ?illuminance ?lighting WHERE {
+	?sensor a brick:Luminance_Sensor ;
+			bf:isLocatedIn ?room ;
+			sosa:observes ?illuminance .
+	?illuminance qudt:numericValue ?val .
 
-            FILTER (?val < 500) # 500 lux: office lighting
+	?switch a brick:Luminance_Command ;
+			bf:isLocatedIn ?room ;
+			sosa:actsOnProperty ?lighting .
+	?lighting rdf:value ?state .
 
-            ?switch a brick:Luminance_Command ;
-                    bf:isLocatedIn ?room ;
-                    sosa:actsOnProperty ?lighting .
-            ?lighting rdf:value ?state .
+	?room a brick:Room .
 
-            ?room a brick:Room .
-
-             FILTER (?state != "off")
-        }
-    }
+	# 500 lux: office lighting
+	FILTER (if(?val > 500, ?state != "off", ?state != "on"))
 }
