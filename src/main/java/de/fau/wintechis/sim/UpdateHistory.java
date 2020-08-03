@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 
-class UpdateHistory extends Stack<UpdateHistory.UpdateSequence> implements SailConnectionListener {
+class UpdateHistory extends Stack<UpdateHistory.UpdateSequence> implements History, SailConnectionListener {
 
     enum UpdateOperation { INSERT, DELETE }
 
@@ -60,6 +60,7 @@ class UpdateHistory extends Stack<UpdateHistory.UpdateSequence> implements SailC
         this.clear();
     }
 
+    @Override
     public void timeIncremented() {
         this.add(new UpdateSequence());
     }

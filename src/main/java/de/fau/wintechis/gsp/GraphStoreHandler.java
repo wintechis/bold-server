@@ -23,16 +23,20 @@ import java.util.Set;
  * RESTful access to named graphs in an RDF dataset.
  *
  * TODO ASK queries (~ RDF shapes) to control resource handler I/O
+ * TODO request logger (for evaluation)
  */
 public class GraphStoreHandler extends AbstractHandler {
 
     public static final RDFFormat DEFAULT_RDF_FORMAT = RDFFormat.TURTLE;
 
+    private final URI baseURI;
+
     private final RepositoryConnection connection;
 
     private final Set<GraphStoreListener> listeners = new HashSet<>();
 
-    public GraphStoreHandler(Repository repo) {
+    public GraphStoreHandler(URI base, Repository repo) {
+        baseURI = base;
         connection = repo.getConnection();
     }
 
@@ -50,8 +54,7 @@ public class GraphStoreHandler extends AbstractHandler {
 
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        URI base = getServer().getURI();
-        IRI graphName = Vocabulary.VALUE_FACTORY.createIRI(base.resolve(target).toString()); // direct addressing
+        IRI graphName = Vocabulary.VALUE_FACTORY.createIRI(baseURI.resolve(target).toString()); // direct addressing
 
         boolean created = !exists(graphName);
 

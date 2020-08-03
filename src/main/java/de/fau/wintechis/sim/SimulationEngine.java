@@ -1,10 +1,7 @@
 package de.fau.wintechis.sim;
 
-import de.fau.wintechis.gsp.GraphStoreHandler;
-import de.fau.wintechis.gsp.GraphStoreListener;
 import de.fau.wintechis.io.FileUtils;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.query.*;
@@ -24,6 +21,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class SimulationEngine {
 
@@ -43,9 +41,7 @@ public class SimulationEngine {
 
     private EngineState currentState = EngineState.CREATED;
 
-    private final Server server;
-
-    private final GraphStoreHandler handler;
+    private SimulationHandler handler; // FIXME should be final
 
     private final Model dataset = new LinkedHashModel();
 
@@ -55,13 +51,17 @@ public class SimulationEngine {
 
     private final Map<String, TupleQuery> queries = new HashMap<>();
 
-    private final Map<TupleQuery, Writer> writers = new HashMap<>();
+    private final Map<TupleQuery, Writer> writers = new HashMap<>(); // FIXME ref is not necessary (only used during replay)
 
     private String dumpPattern = null;
 
+    private String interactionFilename = "interactions.tsv"; // FIXME as config parameter
+
     private final RepositoryConnection connection;
 
-    private final UpdateHistory history = new UpdateHistory();
+    private final UpdateHistory updateHistory = new UpdateHistory();
+
+    private final InteractionHistory interactionHistory = new InteractionHistory();
 
     private Timer timer;
 
@@ -74,16 +74,8 @@ public class SimulationEngine {
         Repository repo = new SailRepository(store);
         connection = repo.getConnection();
 
-        // GSP interface initialization
-        handler = new GraphStoreHandler(repo);
-        server = new Server(port);
-        server.setHandler(handler);
-
         try {
-            server.start();
-
-            SimListener runner = new SimListener();
-            handler.addGraphStoreListener(runner);
+            handler = new SimulationHandler(this, port);
 
             // sim resource must be updated first, before any other resource
             registerSingleUpdate("sim-init.rq");
@@ -91,7 +83,7 @@ public class SimulationEngine {
 
             // simulation ends when no iteration is left in sim resource
             String buf = FileUtils.asString(FileUtils.getFileOrResource("sim-running.rq"));
-            simRunningQuery = connection.prepareBooleanQuery(QueryLanguage.SPARQL, buf, getBaseIRI(server));
+            simRunningQuery = connection.prepareBooleanQuery(QueryLanguage.SPARQL, buf, handler.getBaseURI());
 
             callTransition();
         } catch (Exception e) {
@@ -107,7 +99,7 @@ public class SimulationEngine {
     }
 
     public SimulationEngine registerContinuousUpdate(String name, String sparulString) throws IOException {
-        Update u = connection.prepareUpdate(QueryLanguage.SPARQL, sparulString, getBaseIRI(server));
+        Update u = connection.prepareUpdate(QueryLanguage.SPARQL, sparulString, handler.getBaseURI());
         continuousUpdates.put(name, u);
 
         return this;
@@ -121,7 +113,7 @@ public class SimulationEngine {
     }
 
     public SimulationEngine registerQuery(String name, String sparqlString) throws IOException {
-        TupleQuery q = connection.prepareTupleQuery(QueryLanguage.SPARQL, sparqlString, getBaseIRI(server));
+        TupleQuery q = connection.prepareTupleQuery(QueryLanguage.SPARQL, sparqlString, handler.getBaseURI());
         queries.put(name, q);
 
         return this;
@@ -129,7 +121,7 @@ public class SimulationEngine {
 
     public SimulationEngine registerDataset(String filename) throws IOException {
         RDFFormat format = Rio.getParserFormatForFileName(filename).orElseThrow(() -> new IOException());
-        Model ds = Rio.parse(FileUtils.getFileOrResource(filename), getBaseIRI(server), format);
+        Model ds = Rio.parse(FileUtils.getFileOrResource(filename), handler.getBaseURI(), format);
         dataset.addAll(ds);
 
         return this;
@@ -143,7 +135,7 @@ public class SimulationEngine {
     }
 
     public SimulationEngine registerSingleUpdate(String name, String sparulString) throws IOException {
-        Update u = connection.prepareUpdate(QueryLanguage.SPARQL, sparulString, getBaseIRI(server));
+        Update u = connection.prepareUpdate(QueryLanguage.SPARQL, sparulString, handler.getBaseURI());
         singleUpdates.put(name, u);
 
         return this;
@@ -159,10 +151,6 @@ public class SimulationEngine {
         callTransition();
     }
 
-    public void terminate() throws Exception {
-        server.stop();
-    }
-
     /**
      * For test purposes.
      *
@@ -172,46 +160,10 @@ public class SimulationEngine {
         return connection;
     }
 
-    /**
-     * This class listens to changes to the repository coming from agents and
-     * runs a calls for a transition if the 'sim' resource is being updated/deleted.
-     */
-    private class SimListener implements GraphStoreListener {
-
-        private final IRI sim;
-
-        public SimListener() {
-            sim = Vocabulary.VALUE_FACTORY.createIRI(server.getURI().resolve("sim").toString());
-        }
-
-        @Override
-        public void graphRetrieved(IRI graphName) {
-            // does nothing
-        }
-
-        @Override
-        public void graphUpdated(IRI graphName) {
-            if (graphName.equals(sim)) {
-                callTransition();
-            }
-        }
-
-        @Override
-        public void graphExtended(IRI graphName) {
-            graphUpdated(graphName);
-        }
-
-        @Override
-        public void graphDeleted(IRI graphName) {
-            graphUpdated(graphName);
-        }
-
-    }
-
-    private void callTransition() {
+    void callTransition() {
         switch (currentState) {
             case CREATED:
-                log.info("Simulation engine created, server started.");
+                log.info("Simulation engine created.");
                 // TODO move constructor statements to separate function?
                 currentState = EngineState.CONFIGURED;
                 break;
@@ -237,6 +189,7 @@ public class SimulationEngine {
                 log.info("Simulation running...");
                 run();
                 currentState = EngineState.RUNNING;
+                handler.callTransition();
                 break;
 
             case RUNNING:
@@ -244,36 +197,38 @@ public class SimulationEngine {
                 if (simRunning) {
                     update();
                 } else {
-                    log.info("Simulation run done. Replaying simulation...");
-                    log.info("Average dataset operations: ", history.size()); // FIXME
-                    replay();
                     currentState = EngineState.REPLAYING;
+                    handler.callTransition();
                     callTransition();
                 }
                 break;
 
             case REPLAYING:
-                log.info("Replay done. Writing to files...");
-                close();
+                log.info("Simulation run done. Replaying simulation...");
+                replay();
+                log.info("Replay done.");
                 currentState = EngineState.DIRTY_STORE;
                 callTransition();
                 break;
 
             case DIRTY_STORE:
-                log.info("Results written to file. Cleaning resources...");
+                log.info("Results written to file(s). Cleaning resources...");
                 clean();
                 currentState = EngineState.CONFIGURED;
+                handler.callTransition();
                 callTransition();
                 break;
 
             default:
-                throw new IllegalEngineStateException();
+                throw new IllegalSimulationStateException();
         }
     }
 
     private void init() {
-        getNotifyingSailConnection(connection).addConnectionListener(history);
-        getNotifyingSailConnection(handler.getConnection()).addConnectionListener(history);
+        getNotifyingSailConnection(connection).addConnectionListener(updateHistory);
+        getNotifyingSailConnection(handler.getGraphStoreHandler().getConnection()).addConnectionListener(updateHistory);
+
+        handler.getGraphStoreHandler().addGraphStoreListener(interactionHistory);
 
         connection.add(dataset);
         for (Update u : singleUpdates.values()) u.execute();
@@ -292,20 +247,24 @@ public class SimulationEngine {
     }
 
     private void update() {
-        history.timeIncremented();
+        updateHistory.timeIncremented();
+        interactionHistory.timeIncremented();
         for (Update u : continuousUpdates.values()) u.execute();
     }
 
     private void replay() {
         timer.cancel();
         timer.purge();
-        getNotifyingSailConnection(connection).removeConnectionListener(history);
-        getNotifyingSailConnection(handler.getConnection()).removeConnectionListener(history);
+
+        getNotifyingSailConnection(connection).removeConnectionListener(updateHistory);
+        getNotifyingSailConnection(handler.getGraphStoreHandler().getConnection()).removeConnectionListener(updateHistory);
+
+        handler.getGraphStoreHandler().removeGraphStoreListener(interactionHistory);
 
         for (Map.Entry<String, TupleQuery> kv : queries.entrySet()) {
             try {
                 String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".tsv");
-                writers.put(kv.getValue(),  new FileWriter(name));
+                writers.put(kv.getValue(),  new FileWriter(name, true));
                 // TODO use makePath and put all results in a /results folder
             } catch (IOException e) {
                 e.printStackTrace(); // TODO clean error handling
@@ -321,80 +280,89 @@ public class SimulationEngine {
         connection.clear();
 
         // replays updates and submits queries at each timestamp
-        for (int iteration = 0; iteration < history.size(); iteration++) {
-            UpdateHistory.UpdateSequence cs = history.get(iteration);
+        for (int iteration = 0; iteration < updateHistory.size(); iteration++) {
+            try {
+                UpdateHistory.UpdateSequence cs = updateHistory.get(iteration);
 
-            log.info("Replaying iteration {}...", iteration);
+                log.info("Replaying iteration {}...", iteration);
 
-            int insertions = 0, deletions = 0;
-            for (UpdateHistory.Update u : cs) {
-                if (u.getOperation().equals(UpdateHistory.UpdateOperation.INSERT)) {
-                    connection.add(u.getStatement());
-                    insertions++;
-                } else if (u.getOperation().equals(UpdateHistory.UpdateOperation.DELETE)) {
-                    connection.remove(u.getStatement());
-                    deletions++;
+                int insertions = 0, deletions = 0;
+                for (UpdateHistory.Update u : cs) {
+                        if (u.getOperation().equals(UpdateHistory.UpdateOperation.INSERT)) {
+                            connection.add(u.getStatement());
+                            insertions++;
+                        } else if (u.getOperation().equals(UpdateHistory.UpdateOperation.DELETE)) {
+                            connection.remove(u.getStatement());
+                            deletions++;
+                        }
                 }
-            }
 
-            log.info("Done {} insertions, {} deletions...", insertions, deletions);
+                log.info("Done {} insertions, {} deletions.", insertions, deletions);
 
-            if (dumpFormat != null) {
-                String dumpFilename = String.format(dumpPattern, iteration);
-                try {
-                    Writer dumpWriter = new FileWriter(dumpFilename);
-                    connection.export(Rio.createWriter(dumpFormat, dumpWriter));
-                } catch (IOException e) {
-                    e.printStackTrace(); // TODO clean error handling
-                }
-            }
-
-            long before = System.currentTimeMillis();
-
-            for (TupleQuery q : queries.values()) {
-                // TODO put this code in a TupleQueryResultHandler
-                // vars are ordered for deterministic rendering
-                Set<String> vars = new TreeSet<>();
-                for (BindingSet mu : q.evaluate()) {
-                    String row = "";
-
-                    if (vars.isEmpty()) {
-                        vars.addAll(mu.getBindingNames());
-                    }
-
-                    for (String v : vars) {
-                        if (!row.isEmpty()) row += "\t";
-                        row += mu.getValue(v).stringValue();
-                    }
-                    row += "\n";
-
+                if (dumpFormat != null) {
+                    String dumpFilename = String.format(dumpPattern, iteration);
                     try {
-                        writers.get(q).append(row);
+                        Writer dumpWriter = new FileWriter(dumpFilename);
+                        connection.export(Rio.createWriter(dumpFormat, dumpWriter));
+
+                        log.info("Dumped dataset to {}.", dumpFilename);
                     } catch (IOException e) {
                         e.printStackTrace(); // TODO clean error handling
                     }
                 }
+
+                for (TupleQuery q : queries.values()) {
+                    try {
+                        long before = System.currentTimeMillis();
+
+                        Stream<BindingSet> stream = q.evaluate().stream().distinct();
+                        String row = String.format("%d\t%d\n", iteration, stream.count());
+
+                        long after = System.currentTimeMillis();
+
+                        writers.get(q).append(row);
+
+                        log.info("Executed queries in {} ms.", after - before);
+                    } catch (IOException e) {
+                        e.printStackTrace(); // TODO clean error handling
+                    }
+                }
+            } catch (Exception e) {
+                // TODO why is there randomly a NullPointerException here?
+                e.printStackTrace(); // TODO clean error handling
             }
-
-            long after = System.currentTimeMillis();
-
-            log.info("Executed queries in {} ms.", after - before);
         }
-    }
 
-    private void close() {
         for (Writer w : writers.values()) {
             try {
+                w.append("\n\n");
                 w.close();
             } catch (IOException e) {
                 e.printStackTrace(); // TODO clean error handling
             }
         }
+
+        try {
+            // FIXME filename as const
+            Writer w = new FileWriter(interactionFilename, true);
+
+            for (int iteration = 0; iteration < interactionHistory.size(); iteration++) {
+                InteractionHistory.InteractionCounter c = interactionHistory.get(iteration);
+                w.append(String.format("%d\t%d\t%d\t%d\n", iteration, c.getRetrievals(), c.getUpdates(), c.getDeletions(), c.getExtensions()));
+            }
+
+            w.append("\n\n");
+            w.close();
+
+            log.info("Stored interaction counts to {}.", interactionFilename);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void clean() {
         writers.clear();
-        history.clear();
+        updateHistory.clear();
         connection.clear();
     }
 
