@@ -29,5 +29,5 @@ SELECT ?occupancy ?lighting WHERE {
 
 	?room a brick:Room .
 
-	FILTER (if(?occupancyValue = "off" || ?lightingValue > ?desiredIlluminanceValue, ?lightingValue != "off", ?lightingValue != "on"))
+	FILTER (if(?occupancyValue = "off" || ?illuminanceValue > ?desiredIlluminanceValue, ?lightingValue != "off", ?lightingValue != "on"))
 }

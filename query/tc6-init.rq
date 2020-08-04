@@ -61,9 +61,9 @@ INSERT {
 };
 
 DELETE {
-    GRAPH ?g { ?lighting rdf:value ?oldState }
+    GRAPH ?g { ?occupancy rdf:value ?oldState }
 } INSERT {
-    GRAPH ?g { ?lighting rdf:value "off" }
+    GRAPH ?g { ?occupancy rdf:value "off" }
 } WHERE {
     ?sensor a brick:Occupancy_Sensor ;
             sosa:observes ?occupancy .

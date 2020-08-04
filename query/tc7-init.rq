@@ -61,9 +61,9 @@ INSERT {
 };
 
 DELETE {
-    GRAPH ?g { ?lighting rdf:value ?oldState }
+    GRAPH ?g { ?occupancy rdf:value ?oldState }
 } INSERT {
-    GRAPH ?g { ?lighting rdf:value "off" }
+    GRAPH ?g { ?occupancy rdf:value "off" }
 } WHERE {
     ?sensor a brick:Occupancy_Sensor ;
             sosa:observes ?occupancy .
@@ -96,7 +96,9 @@ DELETE {
 };
 
 INSERT {
-    GRAPH ?st {
+	GRAPH ?room { ?room bf:hasPoint ?sp . }
+	GRAPH ?system { ?system bf:hasPoint ?sp . }
+    GRAPH ?sp {
     	?sp a brick:Luminance_Setpoint ;
     	    bf:isLocatedIn ?room ;
     	    ssn:hasProperty ?property .
@@ -110,6 +112,10 @@ INSERT {
     ?switch a brick:Luminance_Command ;
             bf:isLocatedIn ?room ;
             sosa:actsOnProperty ?lighting .
+
+    ?system bf:hasPoint ?switch ;
+            bf:feeds ?room .
+
 	?room a brick:Room .
 
 	BIND (iri(concat(str(?room), "_LUX_SPT")) AS ?sp)
