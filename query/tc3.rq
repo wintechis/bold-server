@@ -5,7 +5,7 @@ PREFIX ssn: <http://www.w3.org/ns/ssn/>
 PREFIX sosa: <http://www.w3.org/ns/sosa/>
 PREFIX qudt: <http://qudt.org/schema/qudt#>
 
-SELECT ?illuminance ?lighting WHERE {
+SELECT ?lighting WHERE {
 	?sensor a brick:Outside_Luminance_Sensor ;
 			sosa:observes ?illuminance .
 	?illuminance qudt:numericValue ?val .

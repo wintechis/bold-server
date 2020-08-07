@@ -53,4 +53,7 @@ DELETE {
     BIND (?start + ?time * (?end - ?start) / (?zenith * 2) AS ?cloudCover)
 
     BIND (?base * ?cloudCover AS ?val)
+
+    # FIXME bug in rdf4j: if identical value, triple deleted but not inserted?
+    FILTER (?val != ?oldVal)
 }
