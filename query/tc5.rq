@@ -6,7 +6,7 @@ PREFIX ssn: <http://www.w3.org/ns/ssn/>
 PREFIX sosa: <http://www.w3.org/ns/sosa/>
 PREFIX qudt: <http://qudt.org/schema/qudt#>
 
-SELECT ?occupancy ?lighting WHERE {
+SELECT ?lighting WHERE {
 	?sensor a brick:Occupancy_Sensor ;
 			bf:isLocatedIn ?room ;
 			sosa:observes ?occupancy .

@@ -72,14 +72,15 @@ DELETE {
 };
 
 DELETE {
-    GRAPH ?g { ?lighting rdf:value ?oldState }
+	GRAPH ?g { ?lighting rdf:value ?oldState }
 } INSERT {
-    GRAPH ?g { ?lighting rdf:value "off" }
+	GRAPH ?g { ?lighting rdf:value ?state }
 } WHERE {
-    ?switch a brick:Luminance_Command ;
-            sosa:actsOnProperty ?lighting .
-    ?lighting rdf:value ?oldState ;
-              foaf:isPrimaryTopicOf ?g .
+	?switch a brick:Luminance_Command ;
+		    sosa:actsOnProperty ?lighting .
+	?lighting rdf:value ?oldState ;
+		    foaf:isPrimaryTopicOf ?g .
+	BIND (if(sim:rand(?lighting) < 0.5, "on", "off") AS ?state)
 };
 
 DELETE {

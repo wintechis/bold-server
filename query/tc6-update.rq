@@ -177,4 +177,7 @@ DELETE {
     ?room sim:occlusionFactor ?occlusionFactor .
 
     BIND (?base * ?cloudCover * ?orientationFactor * ?occlusionFactor AS ?val)
+
+    # FIXME bug in rdf4j: if identical value, triple deleted but not inserted?
+    FILTER (?val != ?oldVal)
 }
