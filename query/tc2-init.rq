@@ -11,15 +11,20 @@ PREFIX schema: <http://schema.org/>
 PREFIX sim: <http://ti.rw.fau.de/sim#>
 
 INSERT {
-    GRAPH ?building {
-        ?building schema:openingHoursSpecification [
+	# FIXME opening hours shoud not include a date, only time as HH:mm:ss
+	GRAPH <Floor_FirstFloor> {
+        <Floor_FirstFloor> schema:openingHoursSpecification [
         	schema:opens [ time:inXSDDateTimeStamp ?opening ] ;
-			schema:closes [ time:inXSDDateTimeStamp ?closing ]
+			schema:closes [ time:inXSDDateTimeStamp ?earlyClosing ]
+        ] .
+    }
+    GRAPH <Floor_GroundFloor> {
+        <Floor_GroundFloor> schema:openingHoursSpecification [
+        	schema:opens [ time:inXSDDateTimeStamp ?opening ] ;
+			schema:closes [ time:inXSDDateTimeStamp ?lateClosing ]
         ] .
     }
 } WHERE {
-    ?building a brick:Building .
-
     <sim> sim:currentTime ?userTime .
     ?userTime time:inXSDDateTimeStamp ?time .
 
@@ -30,10 +35,12 @@ INSERT {
     BIND (tz(?time) AS ?tz)
 
     BIND ("08:00:00" AS ?openingTime)
-    BIND ("19:00:00" AS ?closingTime)
+    BIND ("19:00:00" AS ?earlyClosingTime)
+    BIND ("23:00:00" AS ?lateClosingTime)
 
     BIND (xsd:dateTime(concat(?date, "T", ?openingTime, ?tz)) AS ?opening)
-    BIND (xsd:dateTime(concat(?date, "T", ?closingTime, ?tz)) AS ?closing)
+    BIND (xsd:dateTime(concat(?date, "T", ?earlyClosingTime, ?tz)) AS ?earlyClosing)
+    BIND (xsd:dateTime(concat(?date, "T", ?lateClosingTime, ?tz)) AS ?lateClosing)
 };
 
 DELETE {
