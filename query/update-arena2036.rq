@@ -1,0 +1,16 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX time: <http://www.w3.org/2006/time#>
+PREFIX sim: <http://ti.rw.fau.de/sim#>
+
+# 'authoritative subject' rule to create a dataset from the input graph 
+
+DELETE {
+	?s ?p ?o .
+} INSERT {
+    GRAPH ?s {
+        ?s ?p ?o .
+    }
+} WHERE {
+    ?s ?p ?o .
+    FILTER (isIRI(?s))
+}

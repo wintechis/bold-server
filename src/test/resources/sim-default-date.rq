@@ -3,6 +3,6 @@ PREFIX time: <http://www.w3.org/2006/time#>
 
 SELECT ?y WHERE {
     ?sim :currentTime ?instant .
-    ?instant time:inDateTime ?desc .
-    ?desc time:year ?y .
+    ?instant time:inXSDDateTimeStamp ?time .
+    FILTER (year(?time) = 1970)
 }

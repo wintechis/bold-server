@@ -35,13 +35,9 @@ public class GraphStoreHandler extends AbstractHandler {
 
     private final Set<GraphStoreListener> listeners = new HashSet<>();
 
-    public GraphStoreHandler(URI base, Repository repo) {
+    public GraphStoreHandler(URI base, RepositoryConnection con) {
         baseURI = base;
-        connection = repo.getConnection();
-    }
-
-    public RepositoryConnection getConnection() {
-        return connection;
+        connection = con;
     }
 
     public void addGraphStoreListener(GraphStoreListener listener) {

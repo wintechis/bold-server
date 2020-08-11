@@ -1,6 +1,16 @@
 package de.fau.wintechis.sim;
 
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.Update;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.event.NotifyingRepositoryConnection;
+import org.eclipse.rdf4j.repository.event.RepositoryConnectionListener;
+import org.eclipse.rdf4j.repository.event.base.RepositoryConnectionListenerAdapter;
+import org.eclipse.rdf4j.sail.NotifyingSailConnection;
 import org.eclipse.rdf4j.sail.SailConnectionListener;
 
 import java.util.ArrayList;
@@ -71,8 +81,6 @@ class UpdateHistory extends Stack<UpdateHistory.UpdateSequence> implements Histo
         this.add(new UpdateSequence());
     }
 
-    // TODO ignore statements that were first inserted and then removed in the same time slot
-
     @Override
     public void statementAdded(Statement st) {
         this.peek().add(new Insert(st));
@@ -82,5 +90,7 @@ class UpdateHistory extends Stack<UpdateHistory.UpdateSequence> implements Histo
     public void statementRemoved(Statement st) {
         this.peek().add(new Delete(st));
     }
+
+    // TODO ignore statements that were first inserted and then removed in the same time slot
 
 }

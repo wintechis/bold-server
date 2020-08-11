@@ -31,17 +31,22 @@ public class SimulationEngineTest {
      */
     private static final long LONGER_THAN_RUN = 750;
 
+    private static final String EXPECTED_TSV = "0\t1\n1\t1\n2\t1\n3\t1\n4\t1\n5\t1\n\n\n";
+
+    private SimulationHandler handler = null;
     private SimulationEngine ngin = null;
 
     @Before
-    public void createEngine() {
-        ngin = new SimulationEngine(TEST_PORT);
+    public void createEngine() throws Exception {
+        handler = new SimulationHandler(TEST_PORT);
+        ngin = handler.getSimulationEngine();
     }
 
     @After
     public void closeEngine() {
         try {
-            ngin.terminate();
+            handler.terminate();
+            clearResults();
         } catch (Exception e) {
             e.printStackTrace();
             // and ignore...
@@ -52,7 +57,7 @@ public class SimulationEngineTest {
     public void testConstructor() throws Exception {
         int status = sendDummyRequest();
 
-        assert status == 404;
+        assert status == 503;
     }
 
     @Test
@@ -89,72 +94,69 @@ public class SimulationEngineTest {
 
     @Test
     public void testUpdateTime() throws Exception {
-        ngin.registerQuery("sim-dates.rq").registerQuery("sim-dates-desc.rq").registrationDone();
+        ngin.registerQuery("sim-date.rq").registerQuery("sim-date-desc.rq").registrationDone();
 
         startSimulation("sim-full.ttl");
 
         TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
 
         // FIXME is in the server's root folder... Should be in a test folder
-        File dates = new File("sim-dates.tsv");
-        File datesDesc = new File("sim-dates-desc.tsv");
-
-        String expected = "2020\n2020\n2020\n2020\n2020\n2020\n";
+        File dates = new File("sim-date.tsv");
+        File datesDesc = new File("sim-date-desc.tsv");
 
         assert dates.exists();
         assert datesDesc.exists();
 
         String buf = FileUtils.asString(new FileInputStream(dates));
 
-        assert buf.equals(expected); // FIXME why does minutes() not return 0, 1, 2...?
+        assert buf.equals(EXPECTED_TSV); // FIXME why does minutes() not return 0, 1, 2...?
 
         buf = FileUtils.asString(new FileInputStream(datesDesc));
 
-        assert buf.equals(expected); // FIXME same
+        assert buf.equals(EXPECTED_TSV); // FIXME same
     }
 
     @Test
     public void testUpdateDefaultTime() throws Exception {
-        ngin.registerQuery("sim-dates.rq").registerQuery("sim-dates-desc.rq").registrationDone();
+        ngin.registerQuery("sim-default-date.rq").registerQuery("sim-default-date-desc.rq").registrationDone();
 
         startSimulation("sim-default.ttl");
 
         TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
 
         // FIXME is in the server's root folder... Should be in a test folder
-        File dates = new File("sim-dates.tsv");
-        File datesDesc = new File("sim-dates-desc.tsv");
-
-        String expected = "1970\n1970\n1970\n1970\n1970\n1970\n";
+        File dates = new File("sim-default-date.tsv");
+        File datesDesc = new File("sim-default-date-desc.tsv");
 
         assert dates.exists();
         assert datesDesc.exists();
 
         String buf = FileUtils.asString(new FileInputStream(dates));
 
-        assert buf.equals(expected); // FIXME why does minutes() not return 0, 1, 2...?
+        assert buf.equals(EXPECTED_TSV); // FIXME why does minutes() not return 0, 1, 2...?
 
         buf = FileUtils.asString(new FileInputStream(datesDesc));
 
-        assert buf.equals(expected); // FIXME same
+        assert buf.equals(EXPECTED_TSV); // FIXME same
     }
 
     @Test
     public void testReplay() throws Exception {
-        ngin.registerQuery("sim-count.rq").registrationDone();
+        ngin.registerQuery("sim-iteration.rq").registrationDone();
 
         startSimulation("sim.ttl");
 
         TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
 
         // FIXME is in the server's root folder... Should be in a test folder
-        File tsv = new File("sim-count.tsv");
+        File tsv = new File("sim-iteration.tsv");
 
         assert tsv.exists();
 
         String buf = FileUtils.asString(new FileInputStream(tsv));
 
-        assert buf.equals("0\n1\n2\n3\n4\n5\n");
+        // TODO also test sequence of (two) SPARQL queries to ensure iteration is incremented by 1
+        assert buf.equals(EXPECTED_TSV);
     }
 
     @Test
@@ -174,25 +176,24 @@ public class SimulationEngineTest {
 
     @Test
     public void testReplayTwice() throws Exception {
-        ngin.registerQuery("sim-count.rq").registrationDone();
+        ngin.registerQuery("sim-iteration.rq").registrationDone();
+
+        startSimulation("sim.ttl");
+
+        TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
 
         startSimulation("sim.ttl");
 
         TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
 
         // FIXME same as testReplay
-        File tsv = new File("sim-count.tsv");
-        tsv.delete();
-
-        startSimulation("sim.ttl");
-
-        TimeUnit.MILLISECONDS.sleep(LONGER_THAN_RUN);
+        File tsv = new File("sim-iteration.tsv");
 
         assert tsv.exists();
 
         String buf = FileUtils.asString(new FileInputStream(tsv));
 
-        assert buf.equals("0\n1\n2\n3\n4\n5\n");
+        assert buf.equals(EXPECTED_TSV + EXPECTED_TSV);
     }
 
     private static boolean ask(String filename, RepositoryConnection con) throws IOException {
@@ -214,6 +215,15 @@ public class SimulationEngineTest {
         req.setEntity(new InputStreamEntity(FileUtils.getFileOrResource(filename)));
         CloseableHttpResponse resp = client.execute(req);
         return resp.getStatusLine().getStatusCode();
+    }
+    
+    private static void clearResults() {
+        // TODO only files for which there is a ".rq" resource
+        File[] files = new File(".").listFiles((File f) -> f.getName().endsWith(".tsv"));
+
+        for (File f : files) {
+            f.delete();
+        }
     }
 
 }

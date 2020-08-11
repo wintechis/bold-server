@@ -2,6 +2,7 @@ package de.fau.wintechis;
 
 import de.fau.wintechis.io.FileUtils;
 import de.fau.wintechis.sim.SimulationEngine;
+import de.fau.wintechis.sim.SimulationHandler;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class Configurator {
 
     private final static String REPLAY_DUMP_KEY = "bold.replay.dump";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         // TODO more advanced CLI
         String task = args.length > 0 ? args[0] : "sim";
 
@@ -31,7 +32,9 @@ public class Configurator {
         config.load(new FileInputStream((task + ".properties")));
 
         int port = Integer.parseInt(config.getProperty(SERVER_HTTP_PORT_KEY, SERVER_HTTP_PORT_DEFAULT));
-        SimulationEngine engine = new SimulationEngine(port);
+        SimulationHandler handler = new SimulationHandler(port);
+
+        SimulationEngine engine = handler.getSimulationEngine();
 
         for (String f : FileUtils.listFiles(config.getProperty(INIT_DATASET_KEY))) {
             engine.registerDataset(f);

@@ -4,6 +4,14 @@ import de.fau.wintechis.gsp.GraphStoreHandler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.event.NotifyingRepository;
+import org.eclipse.rdf4j.repository.event.NotifyingRepositoryConnection;
+import org.eclipse.rdf4j.repository.event.base.NotifyingRepositoryWrapper;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.NotifyingSailConnection;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,15 +24,7 @@ public class SimulationHandler extends AbstractHandler {
 
     public static final String SIMULATION_RESOURCE_TARGET = "/sim";
 
-    private enum HandlerState {
-        READY,
-        RUNNING,
-        REPLAYING
-    }
-
     private final Logger log = LoggerFactory.getLogger(SimulationHandler.class);
-
-    private HandlerState currentState = HandlerState.READY;
 
     private final Server server;
 
@@ -32,54 +32,43 @@ public class SimulationHandler extends AbstractHandler {
 
     private final SimulationEngine engine;
 
-    public SimulationHandler(SimulationEngine ng, int port) throws Exception {
-        engine = ng;
-
+    public SimulationHandler(int port) throws Exception {
         server = new Server(port);
         server.setHandler(this);
         server.start();
 
-        log.info("Server started on port {}. Waiting for command on resource {}...", port, SIMULATION_RESOURCE_TARGET);
+        MemoryStore store = new MemoryStore();
+        SailRepository repo = new SailRepository(store);
+
+        UpdateHistory history = new UpdateHistory(); // TODO finer-grained reporting: distinct histories
+        SailRepositoryConnection engineConnection = repo.getConnection();
+        ((NotifyingSailConnection) engineConnection.getSailConnection()).addConnectionListener(history);
+        SailRepositoryConnection handlerConnection = repo.getConnection();
+        ((NotifyingSailConnection) handlerConnection.getSailConnection()).addConnectionListener(history);
+
+        InteractionHistory interactions = new InteractionHistory();
+
+        engine = new SimulationEngine(server.getURI().toString(), engineConnection, history, interactions);
 
         // note: server's base URI is set only after server starts
-        // TODO tight interdependency between handlers/engine...
-        handler = new GraphStoreHandler(server.getURI(), engine.getConnection().getRepository());
+        handler = new GraphStoreHandler(server.getURI(), handlerConnection);
+        handler.addGraphStoreListener(interactions);
+
+        log.info("Server started on port {}. Waiting for command on resource {}...", port, SIMULATION_RESOURCE_TARGET);
     }
 
-    public String getBaseURI() {
-        return server.getURI().toString();
+    public SimulationEngine getSimulationEngine() {
+        return engine;
     }
 
-    public GraphStoreHandler getGraphStoreHandler() {
-        return handler;
-    }
-
-    void callTransition() {
-        switch (currentState) {
-            case READY:
-                log.info("Linked Data interface over dataset exposed to agents.");
-                currentState = HandlerState.RUNNING;
-                break;
-
-            case RUNNING:
-                log.info("Linked Data interface closed (replaying).");
-                currentState = HandlerState.REPLAYING;
-                break;
-
-            case REPLAYING:
-                log.info("Reinitialized server. Waiting for command on resource {}...", SIMULATION_RESOURCE_TARGET);
-                currentState = HandlerState.READY;
-                break;
-
-            default:
-                throw new IllegalSimulationStateException();
-        }
+    public void terminate() throws Exception {
+        server.stop();
     }
 
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        switch (currentState) {
-            case READY:
+        switch (engine.getCurrentState()) {
+            case EMPTY_STORE:
                 // only recognizes PUT /sim
                 // TODO check validity of RDF payload with shape
                 if (request.getMethod().equals("PUT") && target.equals(SIMULATION_RESOURCE_TARGET)) {
@@ -95,7 +84,7 @@ public class SimulationHandler extends AbstractHandler {
                 handler.handle(target, baseRequest, request, response);
                 break;
 
-            case REPLAYING:
+            default:
                 response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
                 baseRequest.setHandled(true);
                 break;

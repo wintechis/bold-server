@@ -3,6 +3,7 @@ PREFIX time: <http://www.w3.org/2006/time#>
 
 SELECT ?y WHERE {
     ?sim :currentTime ?instant .
-    ?instant time:inXSDDateTimeStamp ?time .
-    BIND (year(?time) AS ?y)
+    ?instant time:inDateTime ?desc .
+    ?desc time:year ?y .
+    FILTER (?y = 2020)
 }
