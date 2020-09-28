@@ -33,7 +33,7 @@ public class FileUtils {
     /**
      * Creates subdirectories included in path if these do not exist (prior to writing files at the end of that path)
      *
-     * @param pattern path that may include wilcards (in which case, no subdirectory is created)
+     * @param pattern path that may include wildcards (in which case, no subdirectory is created)
      *                or format specifiers (%s, %d, ...)
      */
     public static void makePath(String pattern) {

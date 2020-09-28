@@ -249,10 +249,17 @@ public class SimulationEngine {
     }
 
     private void update() {
-        // TODO record time elapsed to report potential time drifts
+        long before = System.currentTimeMillis();
+
         updateHistory.timeIncremented();
         interactionHistory.timeIncremented();
         for (Update u : continuousUpdates.values()) u.execute();
+
+        long after = System.currentTimeMillis();
+
+        if (after - before > 0.5 * timeSlotDuration) {
+            log.warn("updates took more than 50% of timeslot ({} ms).", after - before); // TODO record as TSV instead
+        }
     }
 
     private void replay() {
@@ -263,7 +270,7 @@ public class SimulationEngine {
             try {
                 String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".tsv");
                 writers.put(kv.getValue(),  new FileWriter(name, true));
-                // TODO use makePath and put all results in a /results folder
+                // TODO use makePath and put all results in a /results folder (or have a single faults.tsv)
             } catch (IOException e) {
                 e.printStackTrace(); // TODO clean error handling
             }
