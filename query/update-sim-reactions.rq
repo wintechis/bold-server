@@ -63,7 +63,7 @@ DELETE {
               foaf:isPrimaryTopicOf ?g .
 };
 
-# illuminance gets updated (by lighting systems and sunlight)
+# outside illuminance gets updated (by sunlight)
 
 DELETE {
     GRAPH ?g { ?illuminance qudt:numericValue ?oldVal }
@@ -114,12 +114,16 @@ DELETE {
     FILTER (?val != ?oldVal)
 };
 
+# room illuminance gets updated (by sunlight)
+
 DELETE {
     GRAPH ?g { ?illuminance qudt:numericValue ?oldVal }
 } INSERT {
     GRAPH ?g { ?illuminance qudt:numericValue ?val }
 } WHERE {
     # reference: illuminance values at https://en.wikipedia.org/wiki/Lux
+
+	# TODO do calculation once, in init phase
 
     ?sim sim:currentTime ?userTime ;
          sim:sunriseTime ?sunriseTime ;
@@ -129,6 +133,16 @@ DELETE {
     ?sunriseTime time:inXSDDateTimeStamp ?sunriseTimestamp .
     ?sunsetTime time:inXSDDateTimeStamp ?sunsetTimestamp .
 
+	BIND (sim:inUnixTimeStamp(?sunriseTimestamp) AS ?sunrise)
+	BIND (sim:inUnixTimeStamp(?sunsetTimestamp) AS ?sunset)
+
+	BIND (sim:inUnixTimeStamp(?timestamp) - ?sunrise AS ?time)
+	BIND ((?sunset - ?sunrise) / 2 AS ?zenith)
+
+    ?outsideSensor a brick:Outside_Luminance_Sensor ;
+                   sosa:observes ?outsideIlluminance .
+    ?outsideIlluminance qudt:numericValue ?outsideVal .
+
     ?sensor a brick:Luminance_Sensor ;
             bf:isLocatedIn ?room ;
             sosa:observes ?illuminance .
@@ -137,28 +151,8 @@ DELETE {
     ?room a brick:Room ;
           sim:orientation ?orientation .
 
-	# square function to simulate the sun's rotation from sunrise until sunset
-	# ?max * (1 - ((?time - ?zenith) / ?zenith)^2)
-
-	BIND (sim:inUnixTimeStamp(?sunriseTimestamp) AS ?sunrise)
-	BIND (sim:inUnixTimeStamp(?sunsetTimestamp) AS ?sunset)
-
-	BIND (sim:inUnixTimeStamp(?timestamp) - ?sunrise AS ?time)
-	BIND ((?sunset - ?sunrise) / 2 AS ?zenith)
-
-	BIND (5000 as ?max)
-    BIND (if(?time < 0 || ?time > (2 * ?zenith), 0,
-          ?max * (1 - ((?time - ?zenith) / ?zenith) * ((?time - ?zenith) / ?zenith)))
-          AS ?base)
-
-    ?stimulus a sim:CloudCoverageStimulus ;
-              sim:startCoverage ?start ;
-              sim:endCoverage ?end .
-
-	# linear regression between 2 reference points
-	# TODO more reference points between the 2, then piecewise regression
-
-    BIND (?start + ?time * (?end - ?start) / (?zenith * 2) AS ?cloudCover)
+	BIND (5000 / 40000 as ?factor)
+    BIND (?outsideVal * ?factor AS ?base)
 
     # effect of room's orientation towards the sun: from 1 to 0 if east, 0 to 1 if west.
 
@@ -167,10 +161,43 @@ DELETE {
           ?time / (?zenith * 2))
           AS ?orientationFactor)
 
-	# TODO instead, compute outside illuminance and apply a single occlusion factor for each room.
     ?room sim:occlusionFactor ?occlusionFactor .
 
-    BIND (?base * ?cloudCover * ?orientationFactor * ?occlusionFactor AS ?val)
+    BIND (?base * ?orientationFactor * ?occlusionFactor AS ?val)
+
+    # FIXME bug in rdf4j: if identical value, triple deleted but not inserted?
+    FILTER (?val != ?oldVal)
+};
+
+# room illuminance gets updated (by lighting system)
+
+DELETE {
+    GRAPH ?g { ?illuminance qudt:numericValue ?oldVal }
+} INSERT {
+    GRAPH ?g { ?illuminance qudt:numericValue ?val }
+} WHERE {
+    # reference: illuminance values at https://en.wikipedia.org/wiki/Lux
+
+    ?sensor a brick:Luminance_Sensor ;
+            bf:isLocatedIn ?room ;
+            sosa:observes ?illuminance .
+    ?illuminance qudt:numericValue ?oldVal ;
+                 foaf:isPrimaryTopicOf ?g .
+    ?room a brick:Room .
+
+	{
+		SELECT (count(*) AS ?count) ?sensor WHERE {
+			?cmd a brick:Luminance_Command ;
+				 sim:influences ?sensor ;
+				 sosa:actsOnProperty ?lighting .
+			?lighting rdf:value "on" .
+		} GROUP BY ?sensor
+	}
+
+	# 500 lumen to 10 lux (<=> incident surface 4.pi.r2=~50m2, sphere of radius r=2m)
+	# TODO not consistent with 50-80 lux for artificial light in houses; 100lx as arbitrary value
+
+    BIND (?oldVal + (?count * 100) AS ?val)
 
     # FIXME bug in rdf4j: if identical value, triple deleted but not inserted?
     FILTER (?val != ?oldVal)
