@@ -3,11 +3,23 @@ package de.fau.wintechis.sim;
 import de.fau.wintechis.gsp.GraphStoreListener;
 import org.eclipse.rdf4j.model.IRI;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Stack;
 
-public class InteractionHistory extends Stack<InteractionHistory.InteractionCounter> implements History, GraphStoreListener {
+public class InteractionHistory extends Stack<InteractionHistory.Timeslot> implements History, GraphStoreListener {
 
-    class InteractionCounter {
+    class Timeslot {
+
+        private final long update;
+
+        private long averageRetrieval = 0l;
+
+        private long averageUpdate = 0l;
+
+        private long averageDeletion = 0l;
+
+        private long averageExtension = 0l;
 
         private int retrievals = 0;
 
@@ -17,37 +29,10 @@ public class InteractionHistory extends Stack<InteractionHistory.InteractionCoun
 
         private int extensions = 0;
 
-        public void incrementRetrievals() {
-            retrievals++;
+        Timeslot(Long up) {
+            this.update = up;
         }
 
-        public void incrementUpdates() {
-            updates++;
-        }
-
-        public void incrementDeletions() {
-            deletions++;
-        }
-
-        public void incrementExtensions() {
-            extensions++;
-        }
-
-        public int getRetrievals() {
-            return retrievals;
-        }
-
-        public int getUpdates() {
-            return updates;
-        }
-
-        public int getDeletions() {
-            return deletions;
-        }
-
-        public int getExtensions() {
-            return extensions;
-        }
     }
 
     public InteractionHistory() {
@@ -55,33 +40,55 @@ public class InteractionHistory extends Stack<InteractionHistory.InteractionCoun
     }
 
     @Override
-    public void timeIncremented() {
-        this.add(new InteractionCounter());
+    public void timeIncremented(Long updateTime) {
+        this.add(new Timeslot(updateTime));
     }
 
     @Override
     public void clear() {
         super.clear();
-        this.add(new InteractionCounter());
+        this.add(new Timeslot(0l));
     }
 
     @Override
-    public void graphRetrieved(IRI graphName) {
-        this.peek().incrementRetrievals();
+    public void graphRetrieved(IRI graphName, Long opTime) {
+        Timeslot head = this.peek();
+        head.retrievals++;
+        head.averageRetrieval = avg(head.averageRetrieval, opTime);
     }
 
     @Override
-    public void graphUpdated(IRI graphName) {
-        this.peek().incrementUpdates();
+    public void graphUpdated(IRI graphName, Long opTime) {
+        Timeslot head = this.peek();
+        head.updates++;
+        head.averageUpdate = avg(head.averageUpdate, opTime);
     }
 
     @Override
-    public void graphDeleted(IRI graphName) {
-        this.peek().incrementDeletions();
+    public void graphDeleted(IRI graphName, Long opTime) {
+        Timeslot head = this.peek();
+        head.deletions++;
+        head.averageDeletion = avg(head.averageDeletion, opTime);
     }
 
     @Override
-    public void graphExtended(IRI graphName) {
-        this.peek().incrementExtensions();
+    public void graphExtended(IRI graphName, Long opTime) {
+        Timeslot head = this.peek();
+        head.extensions++;
+        head.averageExtension = avg(head.averageExtension, opTime);
     }
+
+    private Long avg(Long l1, Long l2) {
+        if (l1 == 0l) return l2;
+        else if (l2 == 0l) return l1;
+        else return (l1 + l2) / 2;
+    }
+
+    public void write(Writer w) throws IOException {
+        for (int iteration = 0; iteration < this.size(); iteration++) {
+            Timeslot slot = this.get(iteration);
+            w.append(String.format("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", iteration, slot.update, slot.retrievals, slot.averageRetrieval, slot.updates, slot.averageUpdate, slot.deletions, slot.averageDeletion, slot.extensions, slot.averageExtension));
+        }
+    }
+
 }

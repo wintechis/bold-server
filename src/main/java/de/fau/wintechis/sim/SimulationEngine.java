@@ -1,20 +1,12 @@
 package de.fau.wintechis.sim;
 
 import de.fau.wintechis.io.FileUtils;
-import org.eclipse.jetty.server.Server;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.query.*;
-import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
-import org.eclipse.rdf4j.repository.event.NotifyingRepository;
-import org.eclipse.rdf4j.repository.sail.SailRepository;
-import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
-import org.eclipse.rdf4j.sail.NotifyingSailConnection;
-import org.eclipse.rdf4j.sail.SailConnection;
-import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -232,8 +224,14 @@ public class SimulationEngine {
     }
 
     private void init() {
+        long before = System.currentTimeMillis();
         connection.add(dataset);
         for (Update u : singleUpdates.values()) u.execute();
+        long after = System.currentTimeMillis();
+
+        long t = after - before;
+        updateHistory.timeIncremented(t);
+        interactionHistory.timeIncremented(t);
     }
 
     private void run() {
@@ -250,15 +248,15 @@ public class SimulationEngine {
 
     private void update() {
         long before = System.currentTimeMillis();
-
-        updateHistory.timeIncremented();
-        interactionHistory.timeIncremented();
         for (Update u : continuousUpdates.values()) u.execute();
-
         long after = System.currentTimeMillis();
 
-        if (after - before > 0.5 * timeSlotDuration) {
-            log.warn("updates took more than 50% of timeslot ({} ms).", after - before); // TODO record as TSV instead
+        long t = after - before;
+        updateHistory.timeIncremented(t);
+        interactionHistory.timeIncremented(t);
+
+        if (t > timeSlotDuration) {
+            log.warn("updates took more than timeslot duration ({} ms).", after - before); // TODO record as TSV instead
         }
     }
 
@@ -349,16 +347,11 @@ public class SimulationEngine {
 
         try {
             Writer w = new FileWriter(interactionFilename, true);
-
-            for (int iteration = 0; iteration < interactionHistory.size(); iteration++) {
-                InteractionHistory.InteractionCounter c = interactionHistory.get(iteration);
-                w.append(String.format("%d\t%d\t%d\t%d\t%d\n", iteration, c.getRetrievals(), c.getUpdates(), c.getDeletions(), c.getExtensions()));
-            }
-
+            interactionHistory.write(w);
             w.append("\n\n");
             w.close();
 
-            log.info("Stored interaction counts to {}.", interactionFilename);
+            log.info("Stored interaction counts/times to {}.", interactionFilename);
         } catch (IOException e) {
             e.printStackTrace();
         }

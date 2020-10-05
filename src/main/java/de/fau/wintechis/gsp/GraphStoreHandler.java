@@ -58,17 +58,23 @@ public class GraphStoreHandler extends AbstractHandler {
         RDFFormat accept = Rio.getParserFormatForMIMEType(request.getHeader("Accept")).orElse(DEFAULT_RDF_FORMAT);
         RDFFormat contentType = Rio.getParserFormatForMIMEType(request.getHeader("Content-Type")).orElse(DEFAULT_RDF_FORMAT);
 
+        long before, after;
+
         try {
             switch (baseRequest.getMethod()) {
                 case "GET":
                     if (!created) {
                         response.setHeader("Content-Type", accept.getDefaultMIMEType());
+
+                        before = System.currentTimeMillis();
                         RDFHandler writer = Rio.createWriter(accept, response.getOutputStream());
                         connection.export(writer, graphName);
+                        after = System.currentTimeMillis();
+
                         response.setStatus(HttpServletResponse.SC_OK);
 
                         for (GraphStoreListener l : listeners) {
-                            l.graphRetrieved(graphName);
+                            l.graphRetrieved(graphName, after - before);
                         }
                     } else {
                         response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -77,31 +83,40 @@ public class GraphStoreHandler extends AbstractHandler {
 
                 case "PUT":
                     // TODO do both operations in a single transaction
+                    before = System.currentTimeMillis();
                     connection.clear(graphName);
                     connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, graphName);
+                    after = System.currentTimeMillis();
+
                     response.setStatus(created ? HttpServletResponse.SC_CREATED : HttpServletResponse.SC_NO_CONTENT);
 
                     for (GraphStoreListener l : listeners) {
-                        l.graphUpdated(graphName);
+                        l.graphUpdated(graphName, after - before);
                     }
                     break;
 
                 case "POST":
+                    before = System.currentTimeMillis();
                     connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, graphName);
+                    after = System.currentTimeMillis();
+
                     response.setStatus(created ? HttpServletResponse.SC_CREATED : HttpServletResponse.SC_NO_CONTENT);
 
                     for (GraphStoreListener l : listeners) {
-                        l.graphExtended(graphName);
+                        l.graphExtended(graphName, after - before);
                     }
                     break;
 
                 case "DELETE":
                     if (!created) {
+                        before = System.currentTimeMillis();
                         connection.clear(graphName);
+                        after = System.currentTimeMillis();
+
                         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 
                         for (GraphStoreListener l : listeners) {
-                            l.graphDeleted(graphName);
+                            l.graphDeleted(graphName, after - before);
                         }
                     } else {
                         response.sendError(HttpServletResponse.SC_NOT_FOUND);

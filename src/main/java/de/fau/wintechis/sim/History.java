@@ -8,6 +8,6 @@ import java.util.Stack;
  */
 public interface History {
 
-    public void timeIncremented();
+    public void timeIncremented(Long updateTime);
 
 }

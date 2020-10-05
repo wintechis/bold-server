@@ -71,7 +71,7 @@ class UpdateHistory extends Stack<UpdateHistory.UpdateSequence> implements Histo
     }
 
     @Override
-    public void timeIncremented() {
+    public void timeIncremented(Long updateTime) {
         this.add(new UpdateSequence());
     }
 
