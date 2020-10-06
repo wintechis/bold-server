@@ -85,6 +85,7 @@ public class InteractionHistory extends Stack<InteractionHistory.Timeslot> imple
     }
 
     public void write(Writer w) throws IOException {
+        w.append("# \"iteration\"\t\"time update\"\t\"nb get\"\t\"avg time get\"\t\"nb put\"\t\"avg time put\"\t\"nb delete\"\t\"avg time delete\"\t\"nb post\"\t\"avg time post\"\n");
         for (int iteration = 0; iteration < this.size(); iteration++) {
             Timeslot slot = this.get(iteration);
             w.append(String.format("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", iteration, slot.update, slot.retrievals, slot.averageRetrieval, slot.updates, slot.averageUpdate, slot.deletions, slot.averageDeletion, slot.extensions, slot.averageExtension));

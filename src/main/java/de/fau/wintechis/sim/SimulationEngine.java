@@ -332,6 +332,7 @@ public class SimulationEngine {
                 }
             } catch (Exception e) {
                 // TODO why is there randomly a NullPointerException here?
+                // TODO maybe because of remaining updates still running on the same repository?
                 e.printStackTrace(); // TODO clean error handling
             }
         }

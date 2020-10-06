@@ -4,6 +4,8 @@ import de.fau.wintechis.gsp.GraphStoreHandler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.rdf4j.repository.config.RepositoryRegistry;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.NotifyingSailConnection;
@@ -46,6 +48,8 @@ public class SimulationHandler extends AbstractHandler {
 
         engine = new SimulationEngine(server.getURI().toString(), engineConnection, history, interactions);
 
+        // TODO have a handler thread pool (see org.eclipse.jetty.util.thread.QueuedThreadPool)
+        // TODO manage RepositoryConnections for all individual threads
         // note: server's base URI is set only after server starts
         handler = new GraphStoreHandler(server.getURI(), handlerConnection);
         handler.addGraphStoreListener(interactions);
