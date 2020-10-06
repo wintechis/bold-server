@@ -4,7 +4,6 @@ import de.fau.wintechis.sim.Vocabulary;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFHandler;
@@ -82,16 +81,18 @@ public class GraphStoreHandler extends AbstractHandler {
                     break;
 
                 case "PUT":
-                    // TODO do both operations in a single transaction
+                    // TODO test transaction isolation (and rollback if necessary)
                     before = System.currentTimeMillis();
+                    connection.begin();
                     connection.clear(graphName);
                     connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, graphName);
+                    connection.commit();
                     after = System.currentTimeMillis();
 
                     response.setStatus(created ? HttpServletResponse.SC_CREATED : HttpServletResponse.SC_NO_CONTENT);
 
                     for (GraphStoreListener l : listeners) {
-                        l.graphUpdated(graphName, after - before);
+                        l.graphReplaced(graphName, after - before);
                     }
                     break;
 

@@ -15,7 +15,7 @@ public class InteractionHistory extends Stack<InteractionHistory.Timeslot> imple
 
         private long averageRetrieval = 0l;
 
-        private long averageUpdate = 0l;
+        private long averageReplacement = 0l;
 
         private long averageDeletion = 0l;
 
@@ -23,7 +23,7 @@ public class InteractionHistory extends Stack<InteractionHistory.Timeslot> imple
 
         private int retrievals = 0;
 
-        private int updates = 0;
+        private int replacements = 0;
 
         private int deletions = 0;
 
@@ -58,10 +58,10 @@ public class InteractionHistory extends Stack<InteractionHistory.Timeslot> imple
     }
 
     @Override
-    public void graphUpdated(IRI graphName, Long opTime) {
+    public void graphReplaced(IRI graphName, Long opTime) {
         Timeslot head = this.peek();
-        head.updates++;
-        head.averageUpdate = avg(head.averageUpdate, opTime);
+        head.replacements++;
+        head.averageReplacement = avg(head.averageReplacement, opTime);
     }
 
     @Override
@@ -88,7 +88,7 @@ public class InteractionHistory extends Stack<InteractionHistory.Timeslot> imple
         w.append("# \"iteration\"\t\"time update\"\t\"nb get\"\t\"avg time get\"\t\"nb put\"\t\"avg time put\"\t\"nb delete\"\t\"avg time delete\"\t\"nb post\"\t\"avg time post\"\n");
         for (int iteration = 0; iteration < this.size(); iteration++) {
             Timeslot slot = this.get(iteration);
-            w.append(String.format("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", iteration, slot.update, slot.retrievals, slot.averageRetrieval, slot.updates, slot.averageUpdate, slot.deletions, slot.averageDeletion, slot.extensions, slot.averageExtension));
+            w.append(String.format("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", iteration, slot.update, slot.retrievals, slot.averageRetrieval, slot.replacements, slot.averageReplacement, slot.deletions, slot.averageDeletion, slot.extensions, slot.averageExtension));
         }
     }
 
