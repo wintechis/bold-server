@@ -42,9 +42,9 @@ public class SimulationEngine {
 
     private final Map<String, TupleQuery> queries = new HashMap<>();
 
-    private final Map<TupleQuery, Writer> writers = new HashMap<>(); // FIXME ref is not necessary (only used during replay)
-
     private String dumpPattern = null;
+
+    private String faultFilename = "faults.tsv"; // FIXME as config parameter
 
     private String interactionFilename = "interactions.tsv"; // FIXME as config parameter
 
@@ -264,33 +264,33 @@ public class SimulationEngine {
         timer.cancel();
         timer.purge();
 
-        for (Map.Entry<String, TupleQuery> kv : queries.entrySet()) {
-            try {
-                String name = kv.getKey().replaceFirst("(\\.rq|\\.sparql)?$", ".tsv");
-                writers.put(kv.getValue(),  new FileWriter(name, true));
-                // TODO use makePath and put all results in a /results folder (or have a single faults.tsv)
-            } catch (IOException e) {
-                e.printStackTrace(); // TODO clean error handling
+        try {
+            Writer w = new FileWriter(faultFilename, true);
+
+            StringBuilder str = new StringBuilder();
+            for (String f : queries.keySet()) {
+                str.append(String.format("\t\"%s\"", f));
             }
-        }
 
-        RDFFormat dumpFormat = null;
-        if (dumpPattern != null) {
-            FileUtils.makePath(dumpPattern);
-            dumpFormat = Rio.getParserFormatForFileName(dumpPattern).orElse(RDFFormat.TRIG);
-        }
+            w.append(String.format("# \"iteration\"%s\n", str.toString()));
 
-        replayConnection.clear();
+            RDFFormat dumpFormat = null;
+            if (dumpPattern != null) {
+                FileUtils.makePath(dumpPattern);
+                dumpFormat = Rio.getParserFormatForFileName(dumpPattern).orElse(RDFFormat.TRIG);
+            }
 
-        // replays updates and submits queries at each timestamp
-        for (int iteration = 0; iteration < updateHistory.size(); iteration++) {
-            try {
-                UpdateHistory.UpdateSequence cs = updateHistory.get(iteration);
+            replayConnection.clear();
 
-                log.info("Replaying iteration {}...", iteration);
+            // replays updates and submits queries at each timestamp
+            for (int iteration = 0; iteration < updateHistory.size(); iteration++) {
+                try {
+                    UpdateHistory.UpdateSequence cs = updateHistory.get(iteration);
 
-                int insertions = 0, deletions = 0;
-                for (UpdateHistory.Update u : cs) {
+                    log.info("Replaying iteration {}...", iteration);
+
+                    int insertions = 0, deletions = 0;
+                    for (UpdateHistory.Update u : cs) {
                         if (u.getOperation().equals(UpdateHistory.UpdateOperation.INSERT)) {
                             replayConnection.add(u.getStatement());
                             insertions++;
@@ -298,52 +298,46 @@ public class SimulationEngine {
                             replayConnection.remove(u.getStatement());
                             deletions++;
                         }
-                }
-
-                log.info("Done {} insertions, {} deletions.", insertions, deletions);
-
-                if (dumpFormat != null) {
-                    String dumpFilename = String.format(dumpPattern, iteration);
-                    try {
-                        Writer dumpWriter = new FileWriter(dumpFilename);
-                        replayConnection.export(Rio.createWriter(dumpFormat, dumpWriter));
-
-                        log.info("Dumped dataset to {}.", dumpFilename);
-                    } catch (IOException e) {
-                        e.printStackTrace(); // TODO clean error handling
                     }
-                }
 
-                for (TupleQuery q : queries.values()) {
-                    try {
+                    log.info("Done {} insertions, {} deletions.", insertions, deletions);
+
+                    if (dumpFormat != null) {
+                        String dumpFilename = String.format(dumpPattern, iteration);
+                        try {
+                            Writer dumpWriter = new FileWriter(dumpFilename);
+                            replayConnection.export(Rio.createWriter(dumpFormat, dumpWriter));
+
+                            log.info("Dumped dataset to {}.", dumpFilename);
+                        } catch (IOException e) {
+                            e.printStackTrace(); // TODO clean error handling
+                        }
+                    }
+
+                    str = new StringBuilder();
+                    for (TupleQuery q : queries.values()) {
                         long before = System.currentTimeMillis();
 
                         Stream<BindingSet> stream = q.evaluate().stream().distinct();
-                        String row = String.format("%d\t%d\n", iteration, stream.count());
+                        str.append(String.format("\t%d", stream.count()));
 
                         long after = System.currentTimeMillis();
 
-                        writers.get(q).append(row);
-
                         log.info("Executed query in {} ms.", after - before); // TODO sum
-                    } catch (IOException e) {
-                        e.printStackTrace(); // TODO clean error handling
                     }
-                }
-            } catch (Exception e) {
-                // TODO why is there randomly a NullPointerException here?
-                // TODO maybe because of remaining updates still running on the same repository?
-                e.printStackTrace(); // TODO clean error handling
-            }
-        }
 
-        for (Writer w : writers.values()) {
-            try {
-                w.append("\n\n");
-                w.close();
-            } catch (IOException e) {
-                e.printStackTrace(); // TODO clean error handling
+                    w.append(String.format("%d%s\n", iteration, str.toString()));
+                } catch (Exception e) {
+                    // TODO why is there randomly a NullPointerException here?
+                    // TODO maybe because of remaining updates still running on the same repository?
+                    e.printStackTrace(); // TODO clean error handling
+                }
             }
+
+            w.append("\n\n");
+            w.close();
+        } catch (IOException e) {
+            e.printStackTrace(); // TODO clean error handling
         }
 
         try {
@@ -359,7 +353,6 @@ public class SimulationEngine {
     }
 
     private void clean() {
-        writers.clear();
         updateHistory.clear();
         replayConnection.clear();
     }
