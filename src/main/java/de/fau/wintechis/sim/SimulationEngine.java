@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -264,6 +266,10 @@ public class SimulationEngine {
         timer.cancel();
         timer.purge();
 
+        // TODO put all formatting to separate classes
+
+        String timestamp = String.format("# end of run: %1$tFT%1$tT%1$tz\n", Calendar.getInstance());
+
         try {
             Writer w = new FileWriter(faultFilename, true);
 
@@ -271,7 +277,6 @@ public class SimulationEngine {
             for (String f : queries.keySet()) {
                 str.append(String.format("\t\"%s\"", f));
             }
-
             w.append(String.format("# \"iteration\"%s\n", str.toString()));
 
             RDFFormat dumpFormat = null;
@@ -334,6 +339,7 @@ public class SimulationEngine {
                 }
             }
 
+            w.append(timestamp);
             w.append("\n\n");
             w.close();
         } catch (IOException e) {
@@ -343,6 +349,7 @@ public class SimulationEngine {
         try {
             Writer w = new FileWriter(interactionFilename, true);
             interactionHistory.write(w);
+            w.append(timestamp);
             w.append("\n\n");
             w.close();
 
@@ -354,6 +361,7 @@ public class SimulationEngine {
 
     private void clean() {
         updateHistory.clear();
+        interactionHistory.clear();
         replayConnection.clear();
     }
 
