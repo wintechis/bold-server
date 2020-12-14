@@ -10,6 +10,9 @@ sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+    maven {
+        url 'https://dl.bintray.com/ntnu-ihb/mvn'
+    }
 }
 
 dependencies {
@@ -18,7 +21,11 @@ dependencies {
 
     compile group: 'org.eclipse.rdf4j', name : 'rdf4j-storage', version: '3.2.0'
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.28.v20200408'
+    // FIXME SLF4J is already bound in fmi4j?
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
+    compile group: 'no.ntnu.ihb.fmi4j', name: 'fmi-import', version: '0.36.3'
+    // Kotlin runtime required by fmi4j
+    compile group:'org.jetbrains.kotlin', name:'kotlin-stdlib-jdk8', version: '1.4.21'
 }
 
 mainClassName = 'de.fau.wintechis.Configurator'
