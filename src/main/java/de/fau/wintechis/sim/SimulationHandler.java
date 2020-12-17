@@ -5,7 +5,13 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.rdf4j.federated.FedXFactory;
+import org.eclipse.rdf4j.federated.FederationManager;
+import org.eclipse.rdf4j.federated.endpoint.Endpoint;
+import org.eclipse.rdf4j.federated.endpoint.EndpointFactory;
+import org.eclipse.rdf4j.federated.repository.FedXRepository;
 import org.eclipse.rdf4j.repository.config.RepositoryRegistry;
+import org.eclipse.rdf4j.repository.dataset.DatasetRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.NotifyingSailConnection;
@@ -17,6 +23,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SimulationHandler extends AbstractHandler {
 
@@ -36,7 +44,12 @@ public class SimulationHandler extends AbstractHandler {
         server.start();
 
         MemoryStore store = new MemoryStore();
+        // TODO look at store's iterationCacheSyncThreshold variable for improvement?
         SailRepository repo = new SailRepository(store);
+
+//        List<Endpoint> eps = new ArrayList<>();
+//        eps.add(EndpointFactory.loadEndpoint("from-sparul", repo));
+//        FedXRepository fed = FedXFactory.createFederation(eps);
 
         UpdateHistory history = new UpdateHistory(); // TODO finer-grained reporting: distinct histories
         SailRepositoryConnection engineConnection = repo.getConnection();
