@@ -1,6 +1,9 @@
 package de.fau.wintechis.sim;
 
+import de.fau.wintechis.fmu.FMU2RDF;
 import de.fau.wintechis.io.FileUtils;
+import no.ntnu.ihb.fmi4j.SlaveInstance;
+import no.ntnu.ihb.fmi4j.importer.fmi2.Fmu;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.query.*;
@@ -10,6 +13,7 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -37,6 +41,10 @@ public class SimulationEngine {
     private EngineState currentState = EngineState.CREATED;
 
     private final Model dataset = new LinkedHashModel();
+
+    private final Map<String, SlaveInstance> fmuSlaves = new LinkedHashMap<>();
+
+    private double fmuStepSize;
 
     private final Map<String, Update> singleUpdates = new LinkedHashMap<>();
 
@@ -92,6 +100,19 @@ public class SimulationEngine {
 
     public EngineState getCurrentState() {
         return currentState;
+    }
+
+    public SimulationEngine registerFMU(String filename) throws IOException {
+        Fmu fmu = Fmu.from(new File(filename));
+        // TODO several instances should be allowed?
+        SlaveInstance fmuSlave = fmu.asCoSimulationFmu().newInstance();
+        fmuSlaves.put(filename, fmuSlave);
+
+        // FIXME depends on how /sim is configured
+        fmuSlave.simpleSetup();
+        fmuStepSize = 0.1;
+
+        return this;
     }
 
     public SimulationEngine registerContinuousUpdate(String filename) throws IOException {
@@ -229,6 +250,10 @@ public class SimulationEngine {
         long before = System.currentTimeMillis();
         connection.add(dataset);
         for (Update u : singleUpdates.values()) u.execute();
+        for (SlaveInstance s : fmuSlaves.values()) {
+            connection.add(FMU2RDF.getModelVariables(s, baseURI));
+            connection.add(FMU2RDF.getState(s, baseURI));
+        }
         long after = System.currentTimeMillis();
 
         long t = after - before;
@@ -251,6 +276,11 @@ public class SimulationEngine {
     private void update() {
         long before = System.currentTimeMillis();
         for (Update u : continuousUpdates.values()) u.execute();
+        for (SlaveInstance s : fmuSlaves.values()) {
+            connection.remove(FMU2RDF.getState(s, baseURI));
+            s.doStep(fmuStepSize);
+            connection.add(FMU2RDF.getState(s, baseURI));
+        }
         long after = System.currentTimeMillis();
 
         long t = after - before;

@@ -16,6 +16,8 @@ public class Configurator {
 
     private final static String INIT_DATASET_KEY = "bold.init.dataset";
 
+    private final static String INIT_FMU_KEY = "bold.init.fmu";
+
     private final static String INIT_UPDATE_KEY = "bold.init.update";
 
     private final static String RUNTIME_UPDATE_KEY = "bold.runtime.update";
@@ -38,6 +40,10 @@ public class Configurator {
 
         for (String f : FileUtils.listFiles(config.getProperty(INIT_DATASET_KEY))) {
             engine.registerDataset(f);
+        }
+
+        for (String f : FileUtils.listFiles(config.getProperty(INIT_FMU_KEY))) {
+            engine.registerFMU(f);
         }
 
         for (String f : FileUtils.listFiles(config.getProperty(INIT_UPDATE_KEY))) {
