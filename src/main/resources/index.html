@@ -1,6 +1,21 @@
 <html>
   <head>
+    <meta charset="utf-8">
     <title>BOLD: A Benchmark for Linked Data and Hypermedia Agents</title>
+    <style>
+      * {
+        font-family: sans;
+      }
+
+      body {
+        max-width: 640px;
+        margin: auto;
+      }
+
+      body textarea {
+        max-width: 640px;
+      }
+    </style>
   </head>
   <body>
     <h1>BOLD: A Benchmark for Linked Data and Hypermedia Agents</h1>
@@ -17,7 +32,7 @@
       Rooms contain lighting systems or occupancy sensors.
     </p>
     <p>
-      As example consider the Coffee Dock room (@@@should those be hash URIs?):
+      As example consider the Coffee Dock room:
     </p>
     <ul>
       <li><a href="Room_CoffeeDesk">Coffee Dock room</a></li>
@@ -30,6 +45,7 @@
     <p>
       Lighting systems and occupancy systems have properties, which have values (states).
       The notion of properties comes from the <a href="https://www.w3.org/TR/vocab-ssn/">Semantic Sensor Network Ontology (SSN)</a>.
+      Other notions specific to building automation systems are captured by the <a href="https://brickschema.org/">Brick</a> ontology.
     </p>
     <p>
       As example consider the following properties of systems of the Coffee Dock room:
@@ -58,11 +74,11 @@
     <h3>Starting the Simulation</h3>
     
     <p>
-      To start the simulation, PUT (@@@why not POST?) the following payload to <a href="sim">sim</a> (@@@how to PUT/POST plain, non-key-value payload from the browser?):
+      To start the simulation, PUT the following payload to <a href="sim">sim</a>:
     </p>
 	
-    <form action="sim" >
-      <textarea name="payload" rows="12" cols="70">@prefix : &lt;http://ti.rw.fau.de/sim#&gt;  .
+    <div>
+      <textarea id="start-payload" rows="12" cols="70">@prefix : &lt;http://ti.rw.fau.de/sim#&gt;  .
 @prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
 @base &lt;http://127.0.1.1:8080/&gt; .
 
@@ -71,39 +87,35 @@
       :timeslotDuration 60000 ;
       :iterations 1440 .</textarea>
       </br>
-      <input type="submit"/>
-    </form>
+        <button id="start-button">Send</button>
+    </div>
 
     <h3>Simulated Time</h3>
     <p>
       The resource <a href="sim">sim</a> exposes the current time of the simulation.
     </p>
     <p>
-      Essentially, the state of <a href="sim">sim</a> is the result of the update done via <a href="sim-init.rq">sim-init.rq</a> and <a href="sim.rq">sim.rq</a>.
+      Essentially, the state of <a href="sim">sim</a> is the result of the update done via
+      <a href="https://github.com/bold-benchmark/bold-server/blob/master/src/main/resources/sim-init.rq">sim-init.rq</a> and
+      <a href="https://github.com/bold-benchmark/bold-server/blob/master/src/main/resources/sim.rq">sim.rq</a>.
     </p>
 
-    <h3>Simulated Illuminance</h3>
+    <h3>Simulated Illuminance and Occupancy</h3>
 
     <p>
-      Essentially: simulated sunlight?
-    </p>
-
-    <p>
-      The <a href="init-sim-illuminance.rq">init-sim-illuminance.rq</a> SPARQL update initialises illuminance (systems?).
-    </p>
-
-    <p>
-      The <a href="sim-illuminance.rq">sim-illuminance.rq</a> SPARQL update carries out updates of illuminance (systems? or properties of illuminance systems?) during each iteration. 
-    </p>
-
-    <h3>Simulated Occupancy</h3>
-
-    <p>
-      The init-sim-occupancy.rq SPARQL update initialises occupancy (sensors?).
+      Illuminance (through sunlight) and occupancy measurements are simulated via SPARQL updates.
     </p>
 
     <p>
-      The sim-illuminance.rq SPARQL update carries out updates of illuminance (systems? or properties of illuminance systems?) during each iteration. 
+      The <a href="https://github.com/bold-benchmark/bold-server/blob/master/query/init-sim-illuminance.rq">init-sim-illuminance.rq</a> SPARQL update initialises illuminance.
+    </p>
+
+    <p>
+        The init-sim-occupancy.rq SPARQL update initialises occupancy.
+    </p>
+
+    <p>
+      The <a href="https://github.com/bold-benchmark/bold-server/blob/master/query/update-sim-reactions.rq">update-sim-reactions.rq</a> SPARQL update carries out updates of illuminance and occupancy during each iteration.
     </p>
     
     <h3>Task-dependent Updates</h3>
@@ -133,8 +145,20 @@
     <p>
       The queries ts1.rq (or ts2.rq or tc1.rq ...) check faults depending on the task, i.e., select the properties that do not have the correct value.
     </p>
-    <p>
-      @@@TBD
-    </p>
+
+    <script>
+      const btn = document.getElementById('start-button');
+      const txt = document.getElementById('start-payload');
+
+      btn.onclick = () => {
+        fetch('sim', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'text/turtle'
+          },
+          body: txt.value
+        });
+      };
+    </script>
   </body>
 </html>
