@@ -1,16 +1,27 @@
 # Benchmark Server
 
+## Quickstart
+
 To run the server:
 
 ```shell script
 gradle install
 cd build/install/bold-benchmark
+bin/bold-server
+```
+
+Then, go to http://localhost:8080 for a tutorial.
+
+## Benchmark Run
+
+To evaluate agents against one of the tasks of the benchmark, run the server with an argument:
+
+```shell script
 bin/bold-benchmark <taskname>
 ```
 
-Default server configuration is stored in `sim.properties`.
-The different tasks of the benchmark also have their own configuration file.
 The first argument of the server command is a task name, e.g. `bin/bold-benchmark ts1` will load `ts1.properties`.
+Default server configuration (when no argument is given) is stored in `sim.properties`.
 
 To start/stop a simulation run, send the following HTTP requests to the server:
 
