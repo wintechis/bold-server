@@ -1,4 +1,4 @@
-# Benchmark Server
+# BOLD Server
 
 ## Quickstart
 
@@ -45,6 +45,6 @@ At the end of a simulation run, results are stored in the following two files:
 
 Results for any two successive runs are separated by `\n\n` (Gnuplot convention for multi-dataset files). Each dataset, i.e. data for a single run, includes a header line starting with `#` (Gnuplot comment symbol).
 
-# Acknowledgments
+## Acknowledgments
 
-This work was partially funded by the German Federal Ministry of Education and Researchthrough the MOSAIK project (grant no. 01IS18070A).
+This work was partially funded by the German Federal Ministry of Education and Research through the MOSAIK project (grant no. 01IS18070A).
