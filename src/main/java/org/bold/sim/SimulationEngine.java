@@ -1,6 +1,6 @@
-package de.fau.wintechis.sim;
+package org.bold.sim;
 
-import de.fau.wintechis.io.FileUtils;
+import org.bold.io.FileUtils;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.query.*;
@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Stream;
 

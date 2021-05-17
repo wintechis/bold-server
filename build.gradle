@@ -3,8 +3,8 @@ plugins {
     id 'application'
 }
 
-group 'de.fau.wintechis'
-version '0.1.0'
+group 'org.bold'
+version '0.2.0'
 
 sourceCompatibility = 1.8
 
@@ -21,7 +21,7 @@ dependencies {
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
 }
 
-mainClassName = 'de.fau.wintechis.Configurator'
+mainClassName = 'org.bold.Configurator'
 
 distributions {
     main {

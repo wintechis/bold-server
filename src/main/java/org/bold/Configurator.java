@@ -1,11 +1,10 @@
-package de.fau.wintechis;
+package org.bold;
 
-import de.fau.wintechis.io.FileUtils;
-import de.fau.wintechis.sim.SimulationEngine;
-import de.fau.wintechis.sim.SimulationHandler;
+import org.bold.io.FileUtils;
+import org.bold.sim.SimulationEngine;
+import org.bold.sim.SimulationHandler;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Properties;
 
 public class Configurator {
