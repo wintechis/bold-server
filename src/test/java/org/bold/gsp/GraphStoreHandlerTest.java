@@ -9,17 +9,24 @@ import org.apache.http.impl.client.HttpClients;
 import org.bold.io.FileUtils;
 import org.bold.sim.SimulationEngine;
 import org.bold.sim.SimulationHandler;
+import org.eclipse.rdf4j.common.io.IOUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.StringReader;
+import java.nio.Buffer;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GraphStoreHandlerTest {
 
     private static final Integer TEST_PORT = 8080;
+
+    private static final String EXPECTED_JSON = "{\"val\":10}";
 
     private SimulationHandler handler = null;
     private SimulationEngine ngin = null;
@@ -77,6 +84,31 @@ public class GraphStoreHandlerTest {
         assert status == 404;
     }
 
+    @Test
+    public void testJSONContentType() throws Exception {
+        ngin.registerDataset("json-value.trig").registrationDone();
+
+        Map<String, String> h = new HashMap<>();
+        h.put("Accept", "application/json");
+
+        startSimulation("sim.ttl");
+        String rep = getRepresentation("val", h);
+
+        assert rep.equals(EXPECTED_JSON);
+    }
+
+    private static String getRepresentation(String path, Map<String, String> headers) throws Exception {
+        CloseableHttpClient client = HttpClients.createMinimal();
+        HttpGet req = new HttpGet("http://localhost:" + TEST_PORT + "/" + path);
+
+        for (Map.Entry<String, String> kv : headers.entrySet()) {
+            req.addHeader(kv.getKey(), kv.getValue());
+        }
+
+        CloseableHttpResponse resp = client.execute(req);
+        return IOUtil.readString(resp.getEntity().getContent());
+    }
+
     // TODO code below is duplicated from SimulationEngineTest, use helper class instead
 
     private static int sendDummyRequest() throws Exception {
@@ -84,8 +116,12 @@ public class GraphStoreHandlerTest {
     }
 
     private static int sendDummyRequest(Map<String, String> headers) throws Exception {
+        return sendDummyRequest("not-found", headers);
+    }
+
+    private static int sendDummyRequest(String path, Map<String, String> headers) throws Exception {
         CloseableHttpClient client = HttpClients.createMinimal();
-        HttpGet req = new HttpGet("http://localhost:" + TEST_PORT + "/not-found");
+        HttpGet req = new HttpGet("http://localhost:" + TEST_PORT + "/" + path);
 
         for (Map.Entry<String, String> kv : headers.entrySet()) {
             req.addHeader(kv.getKey(), kv.getValue());

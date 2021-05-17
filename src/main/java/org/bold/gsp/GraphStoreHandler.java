@@ -1,9 +1,9 @@
 package org.bold.gsp;
 
+import org.bold.io.RDFValueFormats;
 import org.bold.sim.Vocabulary;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.rdf4j.common.lang.FileFormat;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.rio.*;
@@ -54,6 +54,10 @@ public class GraphStoreHandler extends AbstractHandler {
         String acceptString = request.getHeader("Accept");
         Optional<RDFFormat> acceptOpt = Rio.getParserFormatForMIMEType(acceptString);
 
+        if (!acceptOpt.isPresent()) {
+            acceptOpt = Optional.ofNullable(RDFValueFormats.getFormatForMediaType(acceptString));
+        }
+
         if (acceptString != null && !acceptOpt.isPresent()) {
             response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE);
             baseRequest.setHandled(true);
@@ -62,6 +66,10 @@ public class GraphStoreHandler extends AbstractHandler {
 
         String contentTypeString = request.getHeader("Content-Type");
         Optional<RDFFormat> contentTypeOpt = Rio.getParserFormatForMIMEType(contentTypeString);
+
+        if (!contentTypeOpt.isPresent()) {
+            contentTypeOpt = Optional.ofNullable(RDFValueFormats.getFormatForMediaType(contentTypeString));
+        }
 
         if (contentTypeString != null && !contentTypeOpt.isPresent()) {
             response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
@@ -80,15 +88,10 @@ public class GraphStoreHandler extends AbstractHandler {
                     if (!created) {
                         response.setHeader("Content-Type", accept.getDefaultMIMEType());
 
-                        // TODO if content type is not RDF, check rdf:value (use a custom RDFWriter)
-
                         before = System.currentTimeMillis();
-                        if (accept instanceof RDFFormat) {
-                            RDFHandler writer = Rio.createWriter(accept, response.getOutputStream());
-                            connection.export(writer, graphName);
-                        } else {
-
-                        }
+                        RDFWriter writer = Rio.createWriter(accept, response.getOutputStream());
+                        // TODO pass graphName as setting if RDFValueWriter
+                        connection.export(writer, graphName);
                         after = System.currentTimeMillis();
 
                         response.setStatus(HttpServletResponse.SC_OK);
