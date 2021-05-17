@@ -3,18 +3,17 @@ package org.bold.gsp;
 import org.bold.sim.Vocabulary;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.rdf4j.common.lang.FileFormat;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
-import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFHandler;
-import org.eclipse.rdf4j.rio.RDFParseException;
-import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.rio.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -22,7 +21,6 @@ import java.util.Set;
  * RESTful access to named graphs in an RDF dataset.
  *
  * TODO ASK queries (~ RDF shapes) to control resource handler I/O
- * TODO request logger (for evaluation)
  */
 public class GraphStoreHandler extends AbstractHandler {
 
@@ -53,9 +51,26 @@ public class GraphStoreHandler extends AbstractHandler {
 
         boolean created = !exists(graphName);
 
-        // TODO send 406 Not Acceptable and 415 Unsupported Media Type if header present?
-        RDFFormat accept = Rio.getParserFormatForMIMEType(request.getHeader("Accept")).orElse(DEFAULT_RDF_FORMAT);
-        RDFFormat contentType = Rio.getParserFormatForMIMEType(request.getHeader("Content-Type")).orElse(DEFAULT_RDF_FORMAT);
+        String acceptString = request.getHeader("Accept");
+        Optional<RDFFormat> acceptOpt = Rio.getParserFormatForMIMEType(acceptString);
+
+        if (acceptString != null && !acceptOpt.isPresent()) {
+            response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE);
+            baseRequest.setHandled(true);
+            return;
+        }
+
+        String contentTypeString = request.getHeader("Content-Type");
+        Optional<RDFFormat> contentTypeOpt = Rio.getParserFormatForMIMEType(contentTypeString);
+
+        if (contentTypeString != null && !contentTypeOpt.isPresent()) {
+            response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+            baseRequest.setHandled(true);
+            return;
+        }
+
+        RDFFormat accept = acceptOpt.orElse(DEFAULT_RDF_FORMAT);
+        RDFFormat contentType = contentTypeOpt.orElse(DEFAULT_RDF_FORMAT);
 
         long before, after;
 
@@ -65,9 +80,15 @@ public class GraphStoreHandler extends AbstractHandler {
                     if (!created) {
                         response.setHeader("Content-Type", accept.getDefaultMIMEType());
 
+                        // TODO if content type is not RDF, check rdf:value (use a custom RDFWriter)
+
                         before = System.currentTimeMillis();
-                        RDFHandler writer = Rio.createWriter(accept, response.getOutputStream());
-                        connection.export(writer, graphName);
+                        if (accept instanceof RDFFormat) {
+                            RDFHandler writer = Rio.createWriter(accept, response.getOutputStream());
+                            connection.export(writer, graphName);
+                        } else {
+
+                        }
                         after = System.currentTimeMillis();
 
                         response.setStatus(HttpServletResponse.SC_OK);

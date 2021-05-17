@@ -22,7 +22,7 @@ public class SimulationHandler extends AbstractHandler {
 
     public static final String SIMULATION_RESOURCE_TARGET = "/sim";
 
-    public static final String PUBLIC_RESOURCE_FOLDER = "doc";
+    public static final String PUBLIC_RESOURCE_FOLDER = "doc"; // TODO make it relative to distribution, not working directory
 
     private final Logger log = LoggerFactory.getLogger(SimulationHandler.class);
 
