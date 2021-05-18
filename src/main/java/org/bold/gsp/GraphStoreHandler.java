@@ -88,9 +88,9 @@ public class GraphStoreHandler extends AbstractHandler {
                     if (!created) {
                         response.setHeader("Content-Type", accept.getDefaultMIMEType());
 
-                        before = System.currentTimeMillis();
                         RDFWriter writer = Rio.createWriter(accept, response.getOutputStream());
-                        // TODO pass graphName as setting if RDFValueWriter
+
+                        before = System.currentTimeMillis();
                         connection.export(writer, graphName);
                         after = System.currentTimeMillis();
 

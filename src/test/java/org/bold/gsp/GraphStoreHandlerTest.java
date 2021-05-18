@@ -85,7 +85,7 @@ public class GraphStoreHandlerTest {
     }
 
     @Test
-    public void testJSONContentType() throws Exception {
+    public void testJSONValue() throws Exception {
         ngin.registerDataset("json-value.trig").registrationDone();
 
         Map<String, String> h = new HashMap<>();
@@ -95,6 +95,19 @@ public class GraphStoreHandlerTest {
         String rep = getRepresentation("val", h);
 
         assert rep.equals(EXPECTED_JSON);
+    }
+
+    @Test
+    public void testJSONNoValue() throws Exception {
+        ngin.registerDataset("json-no-value.trig").registrationDone();
+
+        Map<String, String> h = new HashMap<>();
+        h.put("Accept", "application/json");
+
+        startSimulation("sim.ttl");
+        String rep = getRepresentation("val", h);
+
+        assert rep.isEmpty();
     }
 
     private static String getRepresentation(String path, Map<String, String> headers) throws Exception {
