@@ -16,6 +16,12 @@ import java.io.Writer;
 import java.util.*;
 import java.util.stream.Stream;
 
+/**
+ * Main entity of the BOLD server, managing the state of the simulation (configuration, init, runtime, replay) and the
+ * RDF dataset underlying the simulation.
+ *
+ * The class {@link SimulationHandler} provides an interface between the simulation engine and hypermedia agents.
+ */
 public class SimulationEngine {
 
     public enum EngineState {

@@ -18,6 +18,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * High-level handler providing an interface to agents for managing simulations.
+ * After configuration is done, the simulation handler waits for a command to start the simulation (PUT /sim). When a
+ * simulation runs, processing is delegated to {@link GraphStoreHandler}.
+ */
 public class SimulationHandler extends AbstractHandler {
 
     public static final String SIMULATION_RESOURCE_TARGET = "/sim";
