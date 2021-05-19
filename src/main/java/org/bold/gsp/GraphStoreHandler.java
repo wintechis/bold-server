@@ -51,34 +51,25 @@ public class GraphStoreHandler extends AbstractHandler {
 
         boolean created = !exists(graphName);
 
+        // TODO use a ServletFilter instead, for processing Accept/Content-Type
+
         String acceptString = request.getHeader("Accept");
-        Optional<RDFFormat> acceptOpt = Rio.getParserFormatForMIMEType(acceptString);
+        RDFFormat accept = getFormatForMediaType(acceptString);
 
-        if (!acceptOpt.isPresent()) {
-            acceptOpt = Optional.ofNullable(RDFValueFormats.getFormatForMediaType(acceptString));
-        }
-
-        if (acceptString != null && !acceptOpt.isPresent()) {
+        if (accept == null) {
             response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE);
             baseRequest.setHandled(true);
             return;
         }
 
         String contentTypeString = request.getHeader("Content-Type");
-        Optional<RDFFormat> contentTypeOpt = Rio.getParserFormatForMIMEType(contentTypeString);
+        RDFFormat contentType = getFormatForMediaType(contentTypeString);
 
-        if (!contentTypeOpt.isPresent()) {
-            contentTypeOpt = Optional.ofNullable(RDFValueFormats.getFormatForMediaType(contentTypeString));
-        }
-
-        if (contentTypeString != null && !contentTypeOpt.isPresent()) {
+        if (contentType == null) {
             response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
             baseRequest.setHandled(true);
             return;
         }
-
-        RDFFormat accept = acceptOpt.orElse(DEFAULT_RDF_FORMAT);
-        RDFFormat contentType = contentTypeOpt.orElse(DEFAULT_RDF_FORMAT);
 
         long before, after;
 
@@ -161,6 +152,17 @@ public class GraphStoreHandler extends AbstractHandler {
 
     private boolean exists(IRI graphName) {
         return connection.hasStatement(null, null, null, false, graphName);
+    }
+
+    private RDFFormat getFormatForMediaType(String mediaType) {
+        if (mediaType == null || mediaType.equals("*/*")) return DEFAULT_RDF_FORMAT;
+
+        // TODO parse conneg header if more complex value
+
+        Optional<RDFFormat> opt = Rio.getParserFormatForMIMEType(mediaType);
+        if (opt.isPresent()) return opt.get();
+
+        return RDFValueFormats.getFormatForMediaType(mediaType);
     }
 
 }

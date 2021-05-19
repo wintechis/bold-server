@@ -62,6 +62,19 @@ public class GraphStoreHandlerTest {
     }
 
     @Test
+    public void testAcceptWildcard() throws Exception {
+        ngin.registrationDone();
+
+        Map<String, String> h = new HashMap<>();
+        h.put("Accept", "*/*");
+
+        startSimulation("sim.ttl");
+        int status = sendDummyRequest(h);
+
+        assert status == 404;
+    }
+
+    @Test
     public void testContentType() throws Exception {
         ngin.registrationDone();
 
