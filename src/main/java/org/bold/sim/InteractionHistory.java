@@ -1,13 +1,13 @@
 package org.bold.sim;
 
-import org.bold.gsp.GraphStoreListener;
+import org.bold.http.GraphListener;
 import org.eclipse.rdf4j.model.IRI;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Stack;
 
-public class InteractionHistory extends Stack<InteractionHistory.Timeslot> implements History, GraphStoreListener {
+public class InteractionHistory extends Stack<InteractionHistory.Timeslot> implements History, GraphListener {
 
     class Timeslot {
 

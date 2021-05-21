@@ -1,19 +1,20 @@
-package org.bold.gsp;
+package org.bold.http;
 
-import org.bold.io.RDFValueFormats;
 import org.bold.sim.Vocabulary;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
-import org.eclipse.rdf4j.rio.*;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandler;
+import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.rio.Rio;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -21,8 +22,9 @@ import java.util.Set;
  * RESTful access to named graphs in an RDF dataset.
  *
  * TODO ASK queries (~ RDF shapes) to control resource handler I/O
+ * TODO request logger (for evaluation)
  */
-public class GraphStoreHandler extends AbstractHandler {
+public class LDPHandler extends AbstractHandler implements GraphHandler {
 
     public static final RDFFormat DEFAULT_RDF_FORMAT = RDFFormat.TURTLE;
 
@@ -30,18 +32,18 @@ public class GraphStoreHandler extends AbstractHandler {
 
     private final RepositoryConnection connection;
 
-    private final Set<GraphStoreListener> listeners = new HashSet<>();
+    private final Set<GraphListener> listeners = new HashSet<>();
 
-    public GraphStoreHandler(URI base, RepositoryConnection con) {
+    public LDPHandler(URI base, RepositoryConnection con) {
         baseURI = base;
         connection = con;
     }
 
-    public void addGraphStoreListener(GraphStoreListener listener) {
+    public void addGraphListener(GraphListener listener) {
         listeners.add(listener);
     }
 
-    public void removeGraphStoreListener(GraphStoreListener listener) {
+    public void removeGraphListener(GraphListener listener) {
         listeners.remove(listener);
     }
 
@@ -51,25 +53,9 @@ public class GraphStoreHandler extends AbstractHandler {
 
         boolean created = !exists(graphName);
 
-        // TODO use a ServletFilter instead, for processing Accept/Content-Type
-
-        String acceptString = request.getHeader("Accept");
-        RDFFormat accept = getFormatForMediaType(acceptString);
-
-        if (accept == null) {
-            response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE);
-            baseRequest.setHandled(true);
-            return;
-        }
-
-        String contentTypeString = request.getHeader("Content-Type");
-        RDFFormat contentType = getFormatForMediaType(contentTypeString);
-
-        if (contentType == null) {
-            response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-            baseRequest.setHandled(true);
-            return;
-        }
+        // TODO send 406 Not Acceptable and 415 Unsupported Media Type if header present?
+        RDFFormat accept = Rio.getParserFormatForMIMEType(request.getHeader("Accept")).orElse(DEFAULT_RDF_FORMAT);
+        RDFFormat contentType = Rio.getParserFormatForMIMEType(request.getHeader("Content-Type")).orElse(DEFAULT_RDF_FORMAT);
 
         long before, after;
 
@@ -79,15 +65,14 @@ public class GraphStoreHandler extends AbstractHandler {
                     if (!created) {
                         response.setHeader("Content-Type", accept.getDefaultMIMEType());
 
-                        RDFWriter writer = Rio.createWriter(accept, response.getOutputStream());
-
                         before = System.currentTimeMillis();
+                        RDFHandler writer = Rio.createWriter(accept, response.getOutputStream());
                         connection.export(writer, graphName);
                         after = System.currentTimeMillis();
 
                         response.setStatus(HttpServletResponse.SC_OK);
 
-                        for (GraphStoreListener l : listeners) {
+                        for (GraphListener l : listeners) {
                             l.graphRetrieved(graphName, after - before);
                         }
                     } else {
@@ -106,7 +91,7 @@ public class GraphStoreHandler extends AbstractHandler {
 
                     response.setStatus(created ? HttpServletResponse.SC_CREATED : HttpServletResponse.SC_NO_CONTENT);
 
-                    for (GraphStoreListener l : listeners) {
+                    for (GraphListener l : listeners) {
                         l.graphReplaced(graphName, after - before);
                     }
                     break;
@@ -118,7 +103,7 @@ public class GraphStoreHandler extends AbstractHandler {
 
                     response.setStatus(created ? HttpServletResponse.SC_CREATED : HttpServletResponse.SC_NO_CONTENT);
 
-                    for (GraphStoreListener l : listeners) {
+                    for (GraphListener l : listeners) {
                         l.graphExtended(graphName, after - before);
                     }
                     break;
@@ -131,7 +116,7 @@ public class GraphStoreHandler extends AbstractHandler {
 
                         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 
-                        for (GraphStoreListener l : listeners) {
+                        for (GraphListener l : listeners) {
                             l.graphDeleted(graphName, after - before);
                         }
                     } else {
@@ -152,17 +137,6 @@ public class GraphStoreHandler extends AbstractHandler {
 
     private boolean exists(IRI graphName) {
         return connection.hasStatement(null, null, null, false, graphName);
-    }
-
-    private RDFFormat getFormatForMediaType(String mediaType) {
-        if (mediaType == null || mediaType.equals("*/*")) return DEFAULT_RDF_FORMAT;
-
-        // TODO parse conneg header if more complex value
-
-        Optional<RDFFormat> opt = Rio.getParserFormatForMIMEType(mediaType);
-        if (opt.isPresent()) return opt.get();
-
-        return RDFValueFormats.getFormatForMediaType(mediaType);
     }
 
 }

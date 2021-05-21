@@ -1,4 +1,4 @@
-package org.bold.gsp;
+package org.bold.http;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -33,7 +33,7 @@ public class GraphStoreHandlerTest {
 
     @Before
     public void createEngine() throws Exception {
-        handler = new SimulationHandler(TEST_PORT);
+        handler = new SimulationHandler(TEST_PORT, "gsp");
         ngin = handler.getSimulationEngine();
     }
 

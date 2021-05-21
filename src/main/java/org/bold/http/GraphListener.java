@@ -1,8 +1,8 @@
-package org.bold.gsp;
+package org.bold.http;
 
 import org.eclipse.rdf4j.model.IRI;
 
-public interface GraphStoreListener {
+public interface GraphListener {
 
     void graphRetrieved(IRI graphName, Long opTime);
 

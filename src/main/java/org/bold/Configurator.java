@@ -13,6 +13,10 @@ public class Configurator {
 
     private final static String SERVER_HTTP_PORT_DEFAULT = "8080";
 
+    private final static String SERVER_PROTOCOL = "bold.server.protocol";
+
+    private final static String SERVER_PROTOCOL_DEFAULT = "gsp";
+
     private final static String INIT_DATASET_KEY = "bold.init.dataset";
 
     private final static String INIT_UPDATE_KEY = "bold.init.update";
@@ -31,7 +35,8 @@ public class Configurator {
         config.load(new FileInputStream((task + ".properties")));
 
         int port = Integer.parseInt(config.getProperty(SERVER_HTTP_PORT_KEY, SERVER_HTTP_PORT_DEFAULT));
-        SimulationHandler handler = new SimulationHandler(port);
+        String protocol = config.getProperty(SERVER_PROTOCOL, SERVER_PROTOCOL_DEFAULT);
+        SimulationHandler handler = new SimulationHandler(port, protocol);
 
         SimulationEngine engine = handler.getSimulationEngine();
 

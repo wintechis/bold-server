@@ -1,6 +1,8 @@
 package org.bold.sim;
 
-import org.bold.gsp.GraphStoreHandler;
+import org.bold.http.GraphHandler;
+import org.bold.http.GraphStoreHandler;
+import org.bold.http.LDPHandler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -35,11 +37,11 @@ public class SimulationHandler extends AbstractHandler {
 
     private final ResourceHandler staticHandler;
 
-    private final GraphStoreHandler gsHandler;
+    private final GraphHandler graphHandler;
 
     private final SimulationEngine engine;
 
-    public SimulationHandler(int port) throws Exception {
+    public SimulationHandler(int port, String protocol) throws Exception {
         server = new Server(port);
         server.setHandler(this);
         server.start();
@@ -67,8 +69,15 @@ public class SimulationHandler extends AbstractHandler {
         // TODO have a handler thread pool (see org.eclipse.jetty.util.thread.QueuedThreadPool)
         // TODO manage RepositoryConnections for all individual threads
         // note: server's base URI is set only after server starts
-        gsHandler = new GraphStoreHandler(server.getURI(), handlerConnection);
-        gsHandler.addGraphStoreListener(interactions);
+        switch(protocol) {
+            case "ldp":
+                graphHandler = new LDPHandler(server.getURI(), handlerConnection);
+                break;
+            default: 
+                graphHandler = new GraphStoreHandler(server.getURI(), handlerConnection);
+                break;
+        }
+        graphHandler.addGraphListener(interactions);
 
         log.info("Server started on port {}. Waiting for command on resource {}...", port, SIMULATION_RESOURCE_TARGET);
     }
@@ -91,7 +100,7 @@ public class SimulationHandler extends AbstractHandler {
                 // only recognizes PUT /sim
                 // TODO check validity of RDF payload with shape
                 if (request.getMethod().equals("PUT") && target.equals(SIMULATION_RESOURCE_TARGET)) {
-                    gsHandler.handle(target, baseRequest, request, response);
+                    graphHandler.handle(target, baseRequest, request, response);
                     engine.callTransition();
                 } else {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -100,7 +109,7 @@ public class SimulationHandler extends AbstractHandler {
                 break;
 
             case RUNNING:
-                gsHandler.handle(target, baseRequest, request, response);
+                graphHandler.handle(target, baseRequest, request, response);
                 break;
 
             default:
