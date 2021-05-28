@@ -1,0 +1,10 @@
+build/*
+.gradle/*
+bin/*
+.settings/*
+.classpath
+faults.tsv
+interactions.tsv
+dump/*
+.project
+*.swp
