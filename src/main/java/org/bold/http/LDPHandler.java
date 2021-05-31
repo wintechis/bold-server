@@ -98,7 +98,7 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
                         RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, response.getOutputStream());
 
                         before = System.currentTimeMillis();
-                        connection.export(writer, graphName);
+                        connection.exportStatements(null, null, null, true, writer, graphName);
                         after = System.currentTimeMillis();
 
                         response.setStatus(HttpServletResponse.SC_OK);
