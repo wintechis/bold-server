@@ -92,9 +92,10 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
             switch (baseRequest.getMethod()) {
                 case "GET":
                     if (!created) {
-                        response.setHeader("Content-Type", accept.getDefaultMIMEType());
+                        //response.setHeader("Content-Type", accept.getDefaultMIMEType());
+                        response.setHeader("Content-Type", "text/turtle");
 
-                        RDFWriter writer = Rio.createWriter(accept, response.getOutputStream());
+                        RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, response.getOutputStream());
 
                         before = System.currentTimeMillis();
                         connection.export(writer, graphName);
@@ -180,11 +181,9 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
                     break;
 
                 case "DELETE":
-                    System.out.println("Hey");
                     if (!created) {
                         //Collect containment triples for every context
                         Map<Resource,List<Statement>> containers = connection.getStatements(null, LDP.CONTAINS, graphName).stream().collect(Collectors.groupingBy(Statement::getContext));
-                        System.out.println(containers);
                         for(Resource container : containers.keySet()) {
                             before = System.currentTimeMillis();
                             connection.remove(containers.get(container));

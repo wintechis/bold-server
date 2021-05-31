@@ -29,13 +29,12 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.LDP;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import de.fau.rw.ti.LDPInferencerConnection;
 
 public class LDPHandlerTest {
 
@@ -257,10 +256,6 @@ public class LDPHandlerTest {
         req.setEntity(new InputStreamEntity(FileUtils.getFileOrResource("ldp-put-resource.ttl"), ContentType.create("text/turtle")));
         HttpResponse resp = client.execute(req);
 
-        ngin.getConnection().getStatements(null, null, null, true).forEach(System.out::println);
-
-        System.out.println(ngin.getConnection().getRepository());
-
         assertEquals(
             "Creating a resource in a DirectContainer did not lead to the appropriate membership triple",
             1,
@@ -268,6 +263,31 @@ public class LDPHandlerTest {
                 Vocabulary.VALUE_FACTORY.createIRI("http://127.0.1.1:" + TEST_PORT + "/directContainer#a"),
                 Vocabulary.VALUE_FACTORY.createIRI("http://127.0.1.1:" + TEST_PORT + "/value"),
                 Vocabulary.VALUE_FACTORY.createIRI(resp.getHeaders("Location")[0].getValue())
+            ).stream().count()
+        );
+    }
+
+    @Test
+    public void testIndirectContainer() throws Exception {
+        ngin.registerDataset("ldp-indirect.trig").registrationDone();
+
+        Map<String, String> h = new HashMap<>();
+        h.put("Accept", "text/turtle");
+
+        startSimulation("sim.ttl");
+
+        CloseableHttpClient client = HttpClients.createMinimal();
+        HttpPost req = new HttpPost("http://localhost:" + TEST_PORT + "/indirectContainer");
+        req.setEntity(new InputStreamEntity(FileUtils.getFileOrResource("ldp-put-resource.ttl"), ContentType.create("text/turtle")));
+        client.execute(req);
+
+        assertEquals(
+            "Creating a resource in a IndirectContainer did not lead to the appropriate membership triple",
+            1,
+            ngin.getConnection().getStatements(
+                Vocabulary.VALUE_FACTORY.createIRI("http://127.0.1.1:" + TEST_PORT + "/indirectContainer#b"),
+                Vocabulary.VALUE_FACTORY.createIRI("http://127.0.1.1:" + TEST_PORT + "/value"),
+                Vocabulary.VALUE_FACTORY.createLiteral("5", XSD.INTEGER)
             ).stream().count()
         );
     }

@@ -1,0 +1,11 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ldp: <http://www.w3.org/ns/ldp#> .
+
+<indirectContainer> {
+    <indirectContainer> a ldp:IndirectContainer ;
+        ldp:membershipResource <indirectContainer#b> ;
+        ldp:hasMemberRelation <value> ;
+        ldp:insertedContentRelation rdf:value .
+
+    <indirectContainer#b> a <Stub> .
+}
