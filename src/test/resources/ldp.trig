@@ -1,0 +1,15 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ldp: <http://www.w3.org/ns/ldp#> .
+
+<rootContainer> {
+    <rootContainer> a ldp:BasicContainer ;
+        ldp:contains <rootContainer/containerA>, <rootContainer/resourceA> .
+}
+
+<rootContainer/containerA> {
+    <containerA> a ldp:BasicContainer .
+}
+
+<rootContainer/resourceA> {
+    <resourceA> a ldp:Resource .
+}

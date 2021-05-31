@@ -163,7 +163,7 @@ public class SimulationEngine {
      *
      * @return the engine's repository connection
      */
-    RepositoryConnection getConnection() {
+    public RepositoryConnection getConnection() {
         return connection;
     }
 

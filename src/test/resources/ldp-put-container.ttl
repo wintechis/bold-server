@@ -1,0 +1,5 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ldp: <http://www.w3.org/ns/ldp#> .
+
+<http://127.0.1.1:8080/rootContainer> a ldp:BasicContainer ;
+    ldp:contains <http://127.0.1.1:8080/rootContainer/containerA> .

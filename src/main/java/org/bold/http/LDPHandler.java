@@ -1,11 +1,15 @@
 package org.bold.http;
 
-import org.bold.http.GraphListener;
 import org.bold.io.RDFValueFormats;
 import org.bold.sim.Vocabulary;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.vocabulary.LDP;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.rio.*;
 
@@ -14,8 +18,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Basic implementation of the SPARQL Graph Store protocol, giving
@@ -51,6 +59,12 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
         IRI graphName = Vocabulary.VALUE_FACTORY.createIRI(baseURI.resolve(target).toString()); // direct addressing
 
         boolean created = !exists(graphName);
+
+        IRI containerType = getContainerType(graphName);
+                        
+        if(containerType != null) {
+            response.setHeader("Link", containerType.stringValue() + "; rel=\"type\"");
+        }
 
         // TODO use a ServletFilter instead, for processing Accept/Content-Type
 
@@ -97,11 +111,31 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
                     break;
 
                 case "PUT":
+                    Model model = Rio.parse(request.getInputStream(), baseRequest.getRequestURI(), contentType);
+                    if(containerType != null) {
+                        Set<Statement> containsSet = new HashSet<>();
+                        connection.getStatements(null, LDP.CONTAINS, null, graphName).forEach(containsSet::add);
+
+                        //Check if containment triples are untouched
+                        boolean conflict = false;
+                        for(Statement s : model.getStatements(null, LDP.CONTAINS, null)) {
+                            Statement graphS = Vocabulary.VALUE_FACTORY.createStatement(s.getSubject(), s.getPredicate(), s.getObject(), graphName);
+                            if(!containsSet.contains(graphS)) {
+                                conflict = true;
+                                break;
+                            }
+                            containsSet.remove(graphS);
+                        }
+                        if(conflict || containsSet.size() > 0) {
+                            response.setStatus(HttpServletResponse.SC_CONFLICT);
+                            break;
+                        }
+                    }
                     // TODO test transaction isolation (and rollback if necessary)
                     before = System.currentTimeMillis();
                     connection.begin();
                     connection.clear(graphName);
-                    connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, graphName);
+                    connection.add(model, graphName);
                     connection.commit();
                     after = System.currentTimeMillis();
 
@@ -113,19 +147,53 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
                     break;
 
                 case "POST":
-                    before = System.currentTimeMillis();
-                    connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, graphName);
-                    after = System.currentTimeMillis();
+                    if(containerType != null) {
+                        IRI containedResource = Vocabulary.VALUE_FACTORY.createIRI(graphName.stringValue() + "/", UUID.randomUUID().toString());
 
-                    response.setStatus(created ? HttpServletResponse.SC_CREATED : HttpServletResponse.SC_NO_CONTENT);
+                        before = System.currentTimeMillis();
+                        connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, containedResource);
+                        after = System.currentTimeMillis();
+                        for (GraphListener l : listeners) {
+                            l.graphExtended(graphName, after - before);
+                        }
 
-                    for (GraphListener l : listeners) {
-                        l.graphExtended(graphName, after - before);
+                        before = System.currentTimeMillis();
+                        connection.add(graphName, LDP.CONTAINS, containedResource, graphName);
+                        after = System.currentTimeMillis();
+                        for (GraphListener l : listeners) {
+                            l.graphExtended(graphName, after - before);
+                        }
+
+                        response.setStatus(HttpServletResponse.SC_CREATED);
+                        response.setHeader("Location", containedResource.stringValue());
+                    } else {
+                        before = System.currentTimeMillis();
+                        connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, graphName);
+                        after = System.currentTimeMillis();
+
+                        response.setStatus(created ? HttpServletResponse.SC_CREATED : HttpServletResponse.SC_NO_CONTENT);
+
+                        for (GraphListener l : listeners) {
+                            l.graphExtended(graphName, after - before);
+                        }
                     }
                     break;
 
                 case "DELETE":
+                    System.out.println("Hey");
                     if (!created) {
+                        //Collect containment triples for every context
+                        Map<Resource,List<Statement>> containers = connection.getStatements(null, LDP.CONTAINS, graphName).stream().collect(Collectors.groupingBy(Statement::getContext));
+                        System.out.println(containers);
+                        for(Resource container : containers.keySet()) {
+                            before = System.currentTimeMillis();
+                            connection.remove(containers.get(container));
+                            after = System.currentTimeMillis();
+                            for (GraphListener l : listeners) {
+                                l.graphReplaced(graphName, after - before);
+                            }
+                        }
+
                         before = System.currentTimeMillis();
                         connection.clear(graphName);
                         after = System.currentTimeMillis();
@@ -153,6 +221,14 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
 
     private boolean exists(IRI graphName) {
         return connection.hasStatement(null, null, null, false, graphName);
+    }
+
+    private IRI getContainerType(IRI graphName) {
+        return (IRI) connection.getStatements(graphName, RDF.TYPE, null, false, graphName).stream().map(
+            s -> s.getObject()
+        ).filter(
+            o -> o.equals(LDP.BASIC_CONTAINER)
+        ).findAny().orElse(null);
     }
 
     private RDFFormat getFormatForMediaType(String mediaType) {

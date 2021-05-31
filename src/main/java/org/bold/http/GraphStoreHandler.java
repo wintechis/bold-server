@@ -1,6 +1,5 @@
 package org.bold.http;
 
-import org.bold.http.GraphListener;
 import org.bold.io.RDFValueFormats;
 import org.bold.sim.Vocabulary;
 import org.eclipse.jetty.server.Request;
