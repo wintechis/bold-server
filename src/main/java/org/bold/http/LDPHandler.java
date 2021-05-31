@@ -151,7 +151,7 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
                         IRI containedResource = Vocabulary.VALUE_FACTORY.createIRI(graphName.stringValue() + "/", UUID.randomUUID().toString());
 
                         before = System.currentTimeMillis();
-                        connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, containedResource);
+                        connection.add(request.getInputStream(), containedResource.stringValue(), contentType, containedResource);
                         after = System.currentTimeMillis();
                         for (GraphListener l : listeners) {
                             l.graphExtended(graphName, after - before);
@@ -227,7 +227,7 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
         return (IRI) connection.getStatements(graphName, RDF.TYPE, null, false, graphName).stream().map(
             s -> s.getObject()
         ).filter(
-            o -> o.equals(LDP.BASIC_CONTAINER)
+            o -> o.equals(LDP.BASIC_CONTAINER) || o.equals(LDP.DIRECT_CONTAINER) || o.equals(LDP.INDIRECT_CONTAINER)
         ).findAny().orElse(null);
     }
 

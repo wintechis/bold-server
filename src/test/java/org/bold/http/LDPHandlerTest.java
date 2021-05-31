@@ -22,6 +22,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.bold.io.FileUtils;
 import org.bold.sim.SimulationEngine;
 import org.bold.sim.SimulationHandler;
+import org.bold.sim.Vocabulary;
 import org.eclipse.rdf4j.common.io.IOUtil;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -33,6 +34,8 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import de.fau.rw.ti.LDPInferencerConnection;
 
 public class LDPHandlerTest {
 
@@ -238,6 +241,35 @@ public class LDPHandlerTest {
         client.execute(req);
 
         assertEquals("DELETE on a contained resource did not remove the containment triple (5.2.5.1)", 1, ngin.getConnection().getStatements(null, LDP.CONTAINS, null).stream().count());
+    }
+
+    @Test
+    public void testDirectContainer() throws Exception {
+        ngin.registerDataset("ldp-direct.trig").registrationDone();
+
+        Map<String, String> h = new HashMap<>();
+        h.put("Accept", "text/turtle");
+
+        startSimulation("sim.ttl");
+
+        CloseableHttpClient client = HttpClients.createMinimal();
+        HttpPost req = new HttpPost("http://localhost:" + TEST_PORT + "/directContainer");
+        req.setEntity(new InputStreamEntity(FileUtils.getFileOrResource("ldp-put-resource.ttl"), ContentType.create("text/turtle")));
+        HttpResponse resp = client.execute(req);
+
+        ngin.getConnection().getStatements(null, null, null, true).forEach(System.out::println);
+
+        System.out.println(ngin.getConnection().getRepository());
+
+        assertEquals(
+            "Creating a resource in a DirectContainer did not lead to the appropriate membership triple",
+            1,
+            ngin.getConnection().getStatements(
+                Vocabulary.VALUE_FACTORY.createIRI("http://127.0.1.1:" + TEST_PORT + "/directContainer#a"),
+                Vocabulary.VALUE_FACTORY.createIRI("http://127.0.1.1:" + TEST_PORT + "/value"),
+                Vocabulary.VALUE_FACTORY.createIRI(resp.getHeaders("Location")[0].getValue())
+            ).stream().count()
+        );
     }
 
     @Test

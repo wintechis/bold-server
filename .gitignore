@@ -8,3 +8,4 @@ interactions.tsv
 dump/*
 .project
 *.swp
+settings.json

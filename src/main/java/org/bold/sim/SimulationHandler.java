@@ -15,6 +15,8 @@ import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.fau.rw.ti.LDPInferencer;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -54,7 +56,15 @@ public class SimulationHandler extends AbstractHandler {
         staticHandler.doStart();
 
         MemoryStore store = new MemoryStore();
-        SailRepository repo = new SailRepository(store);
+        SailRepository  repo;
+        switch(protocol) {
+            case "ldp":
+                repo = new SailRepository(new LDPInferencer(store));
+                break;
+            default:
+                repo = new SailRepository(store);
+                break;
+        }
 
         UpdateHistory history = new UpdateHistory(); // TODO finer-grained reporting: distinct histories
         SailRepositoryConnection engineConnection = repo.getConnection();
