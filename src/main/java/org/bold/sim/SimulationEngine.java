@@ -36,7 +36,7 @@ public class SimulationEngine {
 
     private final Logger log = LoggerFactory.getLogger(SimulationEngine.class);
 
-    private final Integer timeSlotDuration = 100; // TODO as config parameter
+    private final Integer timeSlotDuration = 1000; // TODO as config parameter
 
     private EngineState currentState = EngineState.CREATED;
 

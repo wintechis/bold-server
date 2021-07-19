@@ -64,12 +64,14 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
 
         IRI containerType = getContainerType(graphName);
                         
+        response.setHeader("Access-Control-Allow-Origin", "*");
         if(containerType != null) {
             response.setHeader("Link", containerType.stringValue() + "; rel=\"type\"");
         }
 
         // TODO use a ServletFilter instead, for processing Accept/Content-Type
 
+        /*
         String acceptString = request.getHeader("Accept");
         RDFFormat accept = getFormatForMediaType(acceptString);
 
@@ -78,6 +80,7 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
             baseRequest.setHandled(true);
             return;
         }
+        */
 
         String contentTypeString = request.getHeader("Content-Type");
         RDFFormat contentType = getFormatForMediaType(contentTypeString);
@@ -154,14 +157,18 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
                         IRI containedResource = Vocabulary.VALUE_FACTORY.createIRI(graphName.stringValue() + "/", UUID.randomUUID().toString());
 
                         before = System.currentTimeMillis();
+                        connection.begin();
                         connection.add(request.getInputStream(), containedResource.stringValue(), contentType, containedResource);
+                        connection.commit();
                         after = System.currentTimeMillis();
                         for (GraphListener l : listeners) {
                             l.graphExtended(graphName, after - before);
                         }
 
                         before = System.currentTimeMillis();
+                        connection.begin();
                         connection.add(graphName, LDP.CONTAINS, containedResource, graphName);
+                        connection.commit();
                         after = System.currentTimeMillis();
                         for (GraphListener l : listeners) {
                             l.graphExtended(graphName, after - before);
@@ -171,7 +178,9 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
                         response.setHeader("Location", containedResource.stringValue());
                     } else {
                         before = System.currentTimeMillis();
+                        connection.begin();
                         connection.add(request.getInputStream(), baseRequest.getRequestURI(), contentType, graphName);
+                        connection.commit();
                         after = System.currentTimeMillis();
 
                         response.setStatus(created ? HttpServletResponse.SC_CREATED : HttpServletResponse.SC_NO_CONTENT);
@@ -188,7 +197,9 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
                         Map<Resource,List<Statement>> containers = connection.getStatements(null, LDP.CONTAINS, graphName).stream().collect(Collectors.groupingBy(Statement::getContext));
                         for(Resource container : containers.keySet()) {
                             before = System.currentTimeMillis();
+                            connection.begin();
                             connection.remove(containers.get(container));
+                            connection.commit();
                             after = System.currentTimeMillis();
                             for (GraphListener l : listeners) {
                                 l.graphReplaced(graphName, after - before);
@@ -196,7 +207,9 @@ public class LDPHandler extends AbstractHandler implements GraphHandler {
                         }
 
                         before = System.currentTimeMillis();
+                        connection.begin();
                         connection.clear(graphName);
+                        connection.commit();
                         after = System.currentTimeMillis();
 
                         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
