@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  */
 public class LDPHandler extends AbstractHandler implements GraphHandler {
 
-    public static final IRI LDP_ORDERED_CONTAINER = Vocabulary.VALUE_FACTORY.createIRI(LDP.NAMESPACE, "OrderedContainer");
+    public static final IRI LDP_ORDERED_CONTAINER = Vocabulary.VALUE_FACTORY.createIRI("https://solid.ti.rw.fau.de/public/ns/linked-data-structures#", "OrderedContainer");
 
     public static final RDFFormat DEFAULT_RDF_FORMAT = RDFFormat.TURTLE;
 
