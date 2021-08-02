@@ -4,6 +4,8 @@ A version of the Bold simulation server with support for Linked Data Platform. F
 
 ## Quickstart
 
+Install the [LDP Sail](https://github.com/wintechis/ldp-sail).
+
 To run the server:
 
 ```shell script
