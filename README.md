@@ -1,4 +1,6 @@
-# BOLD Server
+# BOLD Server LDP
+
+A version of the Bold simulation server with support for Linked Data Platform. Forked from https://github.com/bold-benchmark/bold-server.
 
 ## Quickstart
 
