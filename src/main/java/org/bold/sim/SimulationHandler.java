@@ -3,6 +3,7 @@ package org.bold.sim;
 import org.bold.http.GraphHandler;
 import org.bold.http.GraphStoreHandler;
 import org.bold.http.LDPHandler;
+import org.bold.http.WebSocketHandler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -41,6 +42,8 @@ public class SimulationHandler extends AbstractHandler {
 
     private final GraphHandler graphHandler;
 
+    private final WebSocketHandler webSocketHandler;
+
     private final SimulationEngine engine;
 
     public SimulationHandler(int port, String protocol) throws Exception {
@@ -66,10 +69,15 @@ public class SimulationHandler extends AbstractHandler {
                 break;
         }
 
+        webSocketHandler = new WebSocketHandler(port + 1, repo);
+        webSocketHandler.start();
+
         UpdateHistory history = new UpdateHistory(); // TODO finer-grained reporting: distinct histories
         SailRepositoryConnection engineConnection = repo.getConnection();
         ((NotifyingSailConnection) engineConnection.getSailConnection()).addConnectionListener(history);
+        ((NotifyingSailConnection) engineConnection.getSailConnection()).addConnectionListener(webSocketHandler);
         SailRepositoryConnection handlerConnection = repo.getConnection();
+        ((NotifyingSailConnection) handlerConnection.getSailConnection()).addConnectionListener(webSocketHandler);
         ((NotifyingSailConnection) handlerConnection.getSailConnection()).addConnectionListener(history);
 
         InteractionHistory interactions = new InteractionHistory();
