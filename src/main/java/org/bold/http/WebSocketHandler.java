@@ -1,28 +1,14 @@
 package org.bold.http;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
-import com.github.jsonldjava.core.RDFDataset;
-
-import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
-import org.eclipse.rdf4j.repository.sail.config.SailRepositoryConfig;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFHandlerException;
 import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.SailConnectionListener;
@@ -40,6 +26,7 @@ public class WebSocketHandler extends WebSocketServer implements SailConnectionL
 	public WebSocketHandler(int port, SailRepository repo) {
 		super(new InetSocketAddress(port));
 		connection = repo.getConnection();
+		setReuseAddr(true);
 	}
 
 	@Override
