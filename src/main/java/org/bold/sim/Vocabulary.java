@@ -25,6 +25,8 @@ public class Vocabulary {
     public static void registerFunctions() {
         FunctionRegistry.getInstance().add(new ComputeExponentialCDFFunction());
         FunctionRegistry.getInstance().add(new ComputeNormalCDFFunction());
+        FunctionRegistry.getInstance().add(new BellCurveFunction());
+        FunctionRegistry.getInstance().add(new NormalRandomFunction());
         FunctionRegistry.getInstance().add(new RandomFunction());
         FunctionRegistry.getInstance().add(new AfterFunction());
         FunctionRegistry.getInstance().add(new InUnixTimeStampFunction());
