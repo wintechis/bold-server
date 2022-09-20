@@ -50,7 +50,7 @@ public class SimulationEngine {
 
     private String dumpPattern = null;
 
-    private String faultFilename = "faults.tsv"; // FIXME as config parameter
+    private String faultFilename = "faults.csv"; // FIXME as config parameter
 
     private String interactionFilename = "interactions.tsv"; // FIXME as config parameter
 
