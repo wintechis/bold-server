@@ -40,6 +40,8 @@ public class Configurator {
         Properties config = new Properties();
         config.load(new FileInputStream((task + ".properties")));
 
+        randomSeed = Long.parseLong(config.getProperty(SPARQL_RANDOM_SEED, SPARQL_RANDOM_SEED_DEFAULT));
+
         int port = Integer.parseInt(config.getProperty(SERVER_HTTP_PORT_KEY, SERVER_HTTP_PORT_DEFAULT));
         String protocol = config.getProperty(SERVER_PROTOCOL, SERVER_PROTOCOL_DEFAULT);
         SimulationHandler handler = new SimulationHandler(port, protocol);
@@ -64,8 +66,6 @@ public class Configurator {
 
         String filenamePattern = config.getProperty(REPLAY_DUMP_KEY);
         engine.setDumpPattern(filenamePattern);
-
-        randomSeed = Long.parseLong(config.getProperty(SPARQL_RANDOM_SEED, SPARQL_RANDOM_SEED_DEFAULT));
 
         engine.registrationDone();
     }
