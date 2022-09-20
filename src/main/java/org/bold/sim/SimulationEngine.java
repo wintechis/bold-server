@@ -4,6 +4,7 @@ import org.bold.io.FileUtils;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.query.resultio.text.csv.SPARQLResultsCSVWriter;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
@@ -14,7 +15,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * Main entity of the BOLD server, managing the state of the simulation (configuration, init, runtime, replay) and the
@@ -292,6 +292,7 @@ public class SimulationEngine {
             replayConnection.clear();
 
             // replays updates and submits queries at each timestamp
+            SPARQLResultsCSVWriter csvWriter = null;
             for (int iteration = 0; iteration < updateHistory.size(); iteration++) {
                 try {
                     UpdateHistory.UpdateSequence cs = updateHistory.get(iteration);
@@ -327,15 +328,23 @@ public class SimulationEngine {
                     for (TupleQuery q : queries.values()) {
                         long before = System.currentTimeMillis();
 
-                        Stream<BindingSet> stream = q.evaluate().stream().distinct();
-                        str.append(String.format("\t%d", stream.count()));
+                        TupleQueryResult result = q.evaluate();
+
+                        if(csvWriter == null) {
+                            csvWriter = new SPARQLResultsCSVWriter(w);
+                            csvWriter.startQueryResult(result.getBindingNames());
+                        }
+
+                        for(BindingSet bs : result) {
+                            csvWriter.handleSolution(bs);
+                        }
+
 
                         long after = System.currentTimeMillis();
 
                         log.info("Executed query in {} ms.", after - before); // TODO sum
                     }
 
-                    w.append(String.format("%d%s\n", iteration, str.toString()));
                 } catch (Exception e) {
                     // TODO why is there randomly a NullPointerException here?
                     // TODO maybe because of remaining updates still running on the same repository?
@@ -343,6 +352,7 @@ public class SimulationEngine {
                 }
             }
 
+            csvWriter.endQueryResult();
             w.append(timestamp);
             w.append("\n\n");
             w.close();
