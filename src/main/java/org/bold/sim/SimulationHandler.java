@@ -22,6 +22,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /**
  * High-level handler providing an interface to agents for managing simulations.
@@ -47,7 +48,7 @@ public class SimulationHandler extends AbstractHandler {
     private final SimulationEngine engine;
 
     public SimulationHandler(int port, String protocol) throws Exception {
-        server = new Server(port);
+        server = new Server(InetSocketAddress.createUnresolved("127.0.1.1", 8080));
         server.setHandler(this);
         server.start();
 
