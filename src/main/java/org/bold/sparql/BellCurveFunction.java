@@ -8,7 +8,6 @@ import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
 import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
 
 import java.lang.Math;
-import java.util.Random;
 
 /**
  * Returns a normally distributed value with mu = 0 and sigma = 1

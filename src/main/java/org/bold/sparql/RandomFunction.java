@@ -1,5 +1,6 @@
 package org.bold.sparql;
 
+import org.bold.Configurator;
 import org.bold.sim.Vocabulary;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -14,7 +15,7 @@ import java.util.Random;
  */
 public class RandomFunction implements Function {
 
-    private final Random prng = new Random(6987736584800324l); // TODO as sim parameter
+    private final Random prng = new Random(Configurator.randomSeed); // TODO as sim parameter
 
     public void setSeed(long seed) {
         prng.setSeed(seed);

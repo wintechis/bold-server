@@ -9,6 +9,8 @@ import java.util.Properties;
 
 public class Configurator {
 
+    public static long randomSeed;
+
     private final static String SERVER_HTTP_PORT_KEY = "bold.server.httpPort";
 
     private final static String SERVER_HTTP_PORT_DEFAULT = "8080";
@@ -26,6 +28,10 @@ public class Configurator {
     private final static String RUNTIME_QUERY_KEY = "bold.runtime.query";
 
     private final static String REPLAY_DUMP_KEY = "bold.replay.dump";
+
+    private final static String SPARQL_RANDOM_SEED = "bold.sparql.randomSeed";
+
+    private final static String SPARQL_RANDOM_SEED_DEFAULT = "1";
 
     public static void main(String[] args) throws Exception {
         // TODO more advanced CLI
@@ -58,6 +64,8 @@ public class Configurator {
 
         String filenamePattern = config.getProperty(REPLAY_DUMP_KEY);
         engine.setDumpPattern(filenamePattern);
+
+        randomSeed = Long.parseLong(config.getProperty(SPARQL_RANDOM_SEED, SPARQL_RANDOM_SEED_DEFAULT));
 
         engine.registrationDone();
     }
