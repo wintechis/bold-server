@@ -48,7 +48,7 @@ public class SimulationHandler extends AbstractHandler {
     private final SimulationEngine engine;
 
     public SimulationHandler(int port, String protocol, boolean webSocket) throws Exception {
-        server = new Server(InetSocketAddress.createUnresolved("127.0.1.1", 8080));
+        server = new Server(InetSocketAddress.createUnresolved("127.0.1.1", port));
         server.setHandler(this);
         server.start();
 
