@@ -47,7 +47,7 @@ public class SimulationHandler extends AbstractHandler {
 
     private final SimulationEngine engine;
 
-    public SimulationHandler(int port, String protocol) throws Exception {
+    public SimulationHandler(int port, String protocol, boolean webSocket) throws Exception {
         server = new Server(InetSocketAddress.createUnresolved("127.0.1.1", 8080));
         server.setHandler(this);
         server.start();
@@ -70,16 +70,22 @@ public class SimulationHandler extends AbstractHandler {
                 break;
         }
 
-        webSocketHandler = new WebSocketHandler(port + 1, repo);
-        webSocketHandler.start();
+        if(webSocket) {
+            webSocketHandler = new WebSocketHandler(port + 1, repo);
+            webSocketHandler.start();
+        } else {
+            webSocketHandler = null;
+        }
 
         UpdateHistory history = new UpdateHistory(); // TODO finer-grained reporting: distinct histories
         SailRepositoryConnection engineConnection = repo.getConnection();
-        ((NotifyingSailConnection) engineConnection.getSailConnection()).addConnectionListener(history);
-        ((NotifyingSailConnection) engineConnection.getSailConnection()).addConnectionListener(webSocketHandler);
         SailRepositoryConnection handlerConnection = repo.getConnection();
-        ((NotifyingSailConnection) handlerConnection.getSailConnection()).addConnectionListener(webSocketHandler);
+        ((NotifyingSailConnection) engineConnection.getSailConnection()).addConnectionListener(history);
         ((NotifyingSailConnection) handlerConnection.getSailConnection()).addConnectionListener(history);
+        if(webSocket) {
+            ((NotifyingSailConnection) engineConnection.getSailConnection()).addConnectionListener(webSocketHandler);
+            ((NotifyingSailConnection) handlerConnection.getSailConnection()).addConnectionListener(webSocketHandler);
+        }
 
         InteractionHistory interactions = new InteractionHistory();
 

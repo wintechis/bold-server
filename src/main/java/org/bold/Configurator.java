@@ -19,6 +19,10 @@ public class Configurator {
 
     private final static String SERVER_PROTOCOL_DEFAULT = "gsp";
 
+    private final static String SERVER_WEBSOCKET = "bold.server.webSocket";
+
+    private final static String SERVER_WEBSOCKET_DEFAULT = "false";
+
     private final static String INIT_DATASET_KEY = "bold.init.dataset";
 
     private final static String INIT_UPDATE_KEY = "bold.init.update";
@@ -44,7 +48,8 @@ public class Configurator {
 
         int port = Integer.parseInt(config.getProperty(SERVER_HTTP_PORT_KEY, SERVER_HTTP_PORT_DEFAULT));
         String protocol = config.getProperty(SERVER_PROTOCOL, SERVER_PROTOCOL_DEFAULT);
-        SimulationHandler handler = new SimulationHandler(port, protocol);
+        String webSocket = config.getProperty(SERVER_WEBSOCKET, SERVER_WEBSOCKET_DEFAULT);
+        SimulationHandler handler = new SimulationHandler(port, protocol, Boolean.parseBoolean(webSocket));
 
         SimulationEngine engine = handler.getSimulationEngine();
 
