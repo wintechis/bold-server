@@ -50,7 +50,7 @@ public class SimulationEngine {
 
     private String dumpPattern = null;
 
-    private String faultFilename = "faults.csv"; // FIXME as config parameter
+    private String faultFilename;
 
     private String interactionFilename = "interactions.tsv"; // FIXME as config parameter
 
@@ -68,7 +68,8 @@ public class SimulationEngine {
 
     private BooleanQuery simRunningQuery = null; // TODO clean assignment
 
-    public SimulationEngine(String base, RepositoryConnection con, UpdateHistory updates, InteractionHistory interactions) {
+    public SimulationEngine(String base, RepositoryConnection con, UpdateHistory updates, InteractionHistory interactions, String faultFilename) {
+        this.faultFilename = faultFilename;        
         baseURI = base;
 
         // RDF store initialization

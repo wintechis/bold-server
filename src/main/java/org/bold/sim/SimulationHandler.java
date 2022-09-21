@@ -35,6 +35,8 @@ public class SimulationHandler extends AbstractHandler {
 
     public static final String PUBLIC_RESOURCE_FOLDER = "doc"; // TODO make it relative to distribution, not working directory
 
+    private String resultFile;
+
     private final Logger log = LoggerFactory.getLogger(SimulationHandler.class);
 
     private final Server server;
@@ -47,7 +49,9 @@ public class SimulationHandler extends AbstractHandler {
 
     private final SimulationEngine engine;
 
-    public SimulationHandler(int port, String protocol, boolean webSocket) throws Exception {
+    public SimulationHandler(int port, String protocol, boolean webSocket, String resultFile) throws Exception {
+        this.resultFile = resultFile;
+        
         server = new Server(InetSocketAddress.createUnresolved("127.0.1.1", port));
         server.setHandler(this);
         server.start();
@@ -89,7 +93,7 @@ public class SimulationHandler extends AbstractHandler {
 
         InteractionHistory interactions = new InteractionHistory();
 
-        engine = new SimulationEngine(server.getURI().toString(), engineConnection, history, interactions);
+        engine = new SimulationEngine(server.getURI().toString(), engineConnection, history, interactions, resultFile);
 
         // TODO have a handler thread pool (see org.eclipse.jetty.util.thread.QueuedThreadPool)
         // TODO manage RepositoryConnections for all individual threads

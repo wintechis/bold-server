@@ -3,6 +3,7 @@ package org.bold;
 import org.bold.io.FileUtils;
 import org.bold.sim.SimulationEngine;
 import org.bold.sim.SimulationHandler;
+import org.eclipse.rdf4j.model.vocabulary.SP;
 
 import java.io.FileInputStream;
 import java.util.Properties;
@@ -37,6 +38,10 @@ public class Configurator {
 
     private final static String SPARQL_RANDOM_SEED_DEFAULT = "1";
 
+    private final static String SPARQL_RESULT_FILE = "bold.sparql.resultFile";
+
+    private final static String SPARQL_RESULT_FILE_DEFAULT = "result.csv";
+
     public static void main(String[] args) throws Exception {
         // TODO more advanced CLI
         String task = args.length > 0 ? args[0] : "sim";
@@ -49,7 +54,8 @@ public class Configurator {
         int port = Integer.parseInt(config.getProperty(SERVER_HTTP_PORT_KEY, SERVER_HTTP_PORT_DEFAULT));
         String protocol = config.getProperty(SERVER_PROTOCOL, SERVER_PROTOCOL_DEFAULT);
         String webSocket = config.getProperty(SERVER_WEBSOCKET, SERVER_WEBSOCKET_DEFAULT);
-        SimulationHandler handler = new SimulationHandler(port, protocol, Boolean.parseBoolean(webSocket));
+        String resultFile = config.getProperty(SPARQL_RESULT_FILE, SPARQL_RESULT_FILE_DEFAULT);
+        SimulationHandler handler = new SimulationHandler(port, protocol, Boolean.parseBoolean(webSocket), resultFile);
 
         SimulationEngine engine = handler.getSimulationEngine();
 
